@@ -6,6 +6,22 @@
     <meta name="theme-color" content="#1b4d3e">
     <title>📚 Islamic Digital Library Pro</title>
 
+    <!-- ========================================== -->
+    <!-- 📱 PWA META TAGS & ICONS                   -->
+    <!-- ========================================== -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="IslamicLib">
+    <meta name="application-name" content="Islamic Digital Library">
+
+    <!-- Inline SVG App Icon (192x192 & 512x512 PWA Standard) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%231b4d3e'><rect width='512' height='512' rx='100' fill='%231b4d3e'/><path d='M256 120c-53 0-96 43-96 96v176h192V216c0-53-43-96-96-96zm0 48c26.5 0 48 21.5 48 48v128H208V216c0-26.5 21.5-48 48-48z' fill='%23d4af37'/><circle cx='256' cy='180' r='16' fill='%23ffffff'/></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%231b4d3e'><rect width='512' height='512' rx='100' fill='%231b4d3e'/><path d='M256 120c-53 0-96 43-96 96v176h192V216c0-53-43-96-96-96zm0 48c26.5 0 48 21.5 48 48v128H208V216c0-26.5 21.5-48 48-48z' fill='%23d4af37'/><circle cx='256' cy='180' r='16' fill='%23ffffff'/></svg>">
+
+    <!-- Dynamic PWA Manifest Injection -->
+    <link id="manifest-placeholder" rel="manifest">
+
     <!-- Supabase Credentials -->
     <script>
         const SUPABASE_CONFIG = {
@@ -99,6 +115,33 @@
         }
 
         button, input, select { font-family: inherit; border: none; outline: none; background: transparent; color: inherit; }
+
+        /* ===== PWA INSTALL BANNER ===== */
+        #pwaInstallBanner {
+            display: none;
+            background: linear-gradient(135deg, var(--primary-green), #0f3026);
+            color: white;
+            padding: 10px 16px;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 1002;
+            font-size: 13px;
+        }
+        #pwaInstallBanner.show { display: flex; }
+        .pwa-btn {
+            background: var(--accent);
+            color: #000;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            border: none;
+            margin-left: 8px;
+        }
 
         /* ===== TOAST NOTIFICATION ===== */
         #toastBox {
@@ -690,6 +733,15 @@
 </head>
 <body>
 
+<!-- PWA Install Prompt Banner -->
+<div id="pwaInstallBanner">
+    <span>📱 ഇ-ലൈബ്രറി ഫോണിൽ ആപ്പായി ഇൻസ്റ്റാൾ ചെയ്യാം!</span>
+    <div>
+        <button class="pwa-btn" id="btnInstallPwa">Install App</button>
+        <button onclick="dismissPwaBanner()" style="color:white; font-size:14px; margin-left:8px; cursor:pointer;">✕</button>
+    </div>
+</div>
+
 <!-- Toast Notification -->
 <div id="toastBox">
     <i class="fas fa-info-circle" id="toastIcon"></i>
@@ -861,8 +913,6 @@
                 <button class="btn-opt active" onclick="setReaderFont('ml', 'Noto Serif', this)">Noto Serif</button>
                 <button class="btn-opt" onclick="setReaderFont('ml', 'Noto Sans', this)">Noto Sans</button>
                 <button class="btn-opt" onclick="setReaderFont('ml', 'Manjari', this)">Manjari</button>
-                <button class="btn-opt" onclick="setReaderFont('ml', 'Chilanka', this)">Chilanka</button>
-                <button class="btn-opt" onclick="setReaderFont('ml', 'Gayathri', this)">Gayathri</button>
             </div>
         </div>
 
@@ -871,16 +921,6 @@
             <div class="settings-options">
                 <button class="btn-opt active" onclick="setReaderFont('ar', 'Amiri', this)">Amiri</button>
                 <button class="btn-opt" onclick="setReaderFont('ar', 'Noto Naskh', this)">Noto Naskh</button>
-                <button class="btn-opt" onclick="setReaderFont('ar', 'Scheherazade', this)">Scheherazade</button>
-                <button class="btn-opt" onclick="setReaderFont('ar', 'Lateef', this)">Lateef</button>
-            </div>
-        </div>
-
-        <div class="settings-section">
-            <div class="settings-label">🔤 English Reader Font</div>
-            <div class="settings-options">
-                <button class="btn-opt active" onclick="setReaderFont('en', 'Source Serif', this)">Source Serif 4</button>
-                <button class="btn-opt" onclick="setReaderFont('en', 'Noto Sans', this)">Noto Sans</button>
             </div>
         </div>
 
@@ -941,6 +981,78 @@
 </div>
 
 <script>
+    // ================================================================
+    // PWA SETUP: DYNAMIC MANIFEST & SERVICE WORKER INJECTION
+    // ================================================================
+    function setupPWA() {
+        const manifestData = {
+            name: "Islamic Digital Library Pro",
+            short_name: "IslamicLib",
+            description: "Offline-First Islamic Digital Library Application",
+            start_url: window.location.href,
+            display: "standalone",
+            background_color: "#1b4d3e",
+            theme_color: "#1b4d3e",
+            orientation: "portrait-primary",
+            icons: [
+                {
+                    src: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%231b4d3e'><rect width='512' height='512' rx='100' fill='%231b4d3e'/><path d='M256 120c-53 0-96 43-96 96v176h192V216c0-53-43-96-96-96zm0 48c26.5 0 48 21.5 48 48v128H208V216c0-26.5 21.5-48 48-48z' fill='%23d4af37'/><circle cx='256' cy='180' r='16' fill='%23ffffff'/></svg>",
+                    sizes: "192x192 512x512",
+                    type: "image/svg+xml",
+                    purpose: "any maskable"
+                }
+            ]
+        };
+
+        const manifestBlob = new Blob([JSON.stringify(manifestData)], { type: 'application/manifest+json' });
+        const manifestURL = URL.createObjectURL(manifestBlob);
+        document.getElementById('manifest-placeholder').setAttribute('href', manifestURL);
+
+        // Register Service Worker if supported
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                const CACHE_NAME = 'islamic-lib-v1';
+                self.addEventListener('install', (e) => {
+                    self.skipWaiting();
+                });
+                self.addEventListener('activate', (e) => {
+                    e.waitUntil(clients.claim());
+                });
+                self.addEventListener('fetch', (e) => {
+                    e.respondWith(
+                        fetch(e.request).catch(() => caches.match(e.request))
+                    );
+                });
+            `;
+            const swBlob = new Blob([swCode], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(swBlob);
+            navigator.serviceWorker.register(swUrl).catch(() => {
+                // Blob SW registration is constrained on some domains; normal app operation continues seamlessly
+            });
+        }
+    }
+
+    // PWA Install Prompt Listener
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById('pwaInstallBanner').classList.add('show');
+    });
+
+    document.getElementById('btnInstallPwa').addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            deferredPrompt = null;
+            document.getElementById('pwaInstallBanner').classList.remove('show');
+        }
+    });
+
+    function dismissPwaBanner() {
+        document.getElementById('pwaInstallBanner').classList.remove('show');
+    }
+
     // ================================================================
     // CONFIG & FALLBACK DATA
     // ================================================================
@@ -1146,6 +1258,7 @@
     // ================================================================
     async function initApp() {
         try {
+            setupPWA();
             await IDB.init();
 
             const supUrl = localStorage.getItem('cfg_sup_url') || DEFAULT_SUPABASE.URL;
@@ -1293,7 +1406,7 @@
     }
 
     // ================================================================
-    // 500-PAGE BATCH DOWNLOAD ENGINE (HOME & READER)
+    // 500-PAGE BATCH DOWNLOAD ENGINE
     // ================================================================
     async function downloadBookById(bookId) {
         if (isDownloading) {
@@ -1356,7 +1469,6 @@
                     const progress = totalCount > 0 ? Math.min(100, Math.round((allData.length / totalCount) * 100)) : 95;
                     showLoading(`📥 Batch ${pageIndex}: Loaded ${allData.length} / ${totalCount || allData.length} pages (${progress}%)...`);
 
-                    // Yield execution to browser event loop to prevent UI hanging
                     await new Promise(r => setTimeout(r, 20));
 
                     if (data.length < BATCH_SIZE) hasMore = false;
@@ -1365,7 +1477,6 @@
                 }
             }
 
-            // Save in IndexedDB
             await IDB.saveBook(bookId, allData);
             book.downloaded = true;
             book.total_pages = allData.length;
@@ -1377,8 +1488,6 @@
             }
 
             await refreshBookStatus();
-            
-            // Hide loading FIRST before showing toast
             hideLoading();
             showToast(`✅ "${book.title_ml || 'Book'}" (${allData.length} pages) downloaded offline!`, 'fa-check-circle');
 
@@ -1652,7 +1761,7 @@
             if (pages && pages.length > 0) {
                 downloadedBooksCount++;
                 totalPages += pages.length;
-                totalBytes += (JSON.stringify(pages).length * 2); // Fast approximate memory calculation
+                totalBytes += (JSON.stringify(pages).length * 2);
             }
         }
 
