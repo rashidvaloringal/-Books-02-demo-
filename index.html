@@ -2,7 +2,7 @@
 <html lang="ml" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#1b4d3e">
     <title>📚 Islamic Digital Library Pro</title>
 
@@ -11,16 +11,20 @@
     <!-- ============================================================ -->
     <script>
         const SUPABASE_CONFIG = {
-            URL: 'https://axjeqkeocbfemojomfjm.supabase.co,
-            KEY: 'sb_publishable_JgdXpn2s46NfLu0wNHU_9w_Cj9ewUKE'
+            URL: 'https://axjeqkeocbfemojomfjm.supabase.co',   // ← നിങ്ങളുടെ URL
+            KEY: 'sb_publishable_JgdXpn2s46NfLu0wNHU_9w_Cj9ewUKE'                // ← നിങ്ങളുടെ Key
         };
     </script>
     <!-- ============================================================ -->
 
+    <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&family=Noto+Sans+Malayalam:wght@400;500;700&family=Noto+Serif+Malayalam:wght@400;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,700;1,8..60,400&family=Inter:wght@400;500;600;700&family=Manjari:wght@400;700&family=Chilanka&family=Gayathri&family=Scheherazade+New:wght@400;700&family=Lateef&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&family=Noto+Sans+Malayalam:wght@400;500;700&family=Noto+Sans:wght@400;500;700&family=Noto+Serif+Malayalam:wght@400;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,700;1,8..60,400&family=Inter:wght@400;500;600;700&family=Manjari:wght@400;700&family=Chilanka&family=Gayathri&family=Scheherazade+New:wght@400;700&family=Lateef&display=swap" rel="stylesheet">
 
     <style>
         /* ============ ROOT VARIABLES ============ */
@@ -57,6 +61,7 @@
             --border: #334155;
             --primary-light: rgba(27,77,62,0.3);
         }
+
         [data-theme="sepia"] {
             --bg: #e2d9c8;
             --surface: #f4ecd8;
@@ -66,6 +71,7 @@
             --border: #d6cbb5;
             --primary-light: #e8dcc8;
         }
+
         [data-theme="amoled"] {
             --bg: #000000;
             --surface: #0a0a0a;
@@ -77,6 +83,7 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
         body {
             background: var(--bg);
             color: var(--text-dark);
@@ -86,12 +93,31 @@
             display: flex;
             flex-direction: column;
             transition: background 0.3s, color 0.3s;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
+
         body.reader-open { overflow: hidden; }
-        button, input, select { font-family: inherit; border: none; outline: none; cursor: pointer; background: none; }
+
+        button, input, select { font-family: inherit; border: none; outline: none; cursor: pointer; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg); }
         ::-webkit-scrollbar-thumb { background: var(--primary-green); border-radius: 4px; }
+
+        /* ============ OFFLINE INDICATOR ============ */
+        #offlineIndicator {
+            display: none;
+            background: #dc3545;
+            color: white;
+            text-align: center;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 1001;
+        }
+        #offlineIndicator.show { display: block; }
 
         /* ============ LOADER ============ */
         #loader {
@@ -118,21 +144,6 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .status { font-size: 16px; font-weight: bold; color: var(--primary-green); text-align: center; }
         .sub-status { font-size: 13px; color: var(--text-muted); text-align: center; }
-
-        /* ============ OFFLINE INDICATOR ============ */
-        #offlineIndicator {
-            display: none;
-            background: #dc3545;
-            color: white;
-            text-align: center;
-            padding: 8px 12px;
-            font-size: 13px;
-            font-weight: bold;
-            position: sticky;
-            top: 0;
-            z-index: 1001;
-        }
-        #offlineIndicator.show { display: block; }
 
         /* ============ HOME VIEW ============ */
         #homeView {
@@ -166,46 +177,173 @@
             gap: 8px;
             color: #d4af37;
         }
-        .top-bar .actions { display: flex; gap: 6px; }
+        .top-bar .actions {
+            display: flex;
+            gap: 6px;
+        }
         .action-btn {
-            width: 38px; height: 38px; border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 16px; cursor: pointer;
-            transition: all 0.2s; background: none; border: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: none;
+            border: none;
         }
         .action-btn:hover { background: rgba(255,255,255,0.15); }
 
-        .search-bar { padding: 10px 0; display: none; }
+        .search-bar {
+            padding: 10px 0;
+            display: none;
+        }
         .search-bar.show { display: block; }
         .search-bar input {
-            width: 100%; padding: 12px 18px; border-radius: 25px;
-            border: 2px solid transparent; font-size: 14px;
-            background: rgba(255,255,255,0.15); color: white;
+            width: 100%;
+            padding: 12px 18px;
+            border-radius: 25px;
+            border: 2px solid transparent;
+            font-size: 14px;
+            font-family: var(--font-ml);
+            background: rgba(255,255,255,0.15);
+            color: white;
         }
         .search-bar input::placeholder { color: #cbd5e1; }
 
         .tabs {
-            display: flex; justify-content: space-around;
-            background: var(--primary-green); padding-bottom: 5px; flex-wrap: wrap;
+            display: flex;
+            justify-content: space-around;
+            background: var(--primary-green);
+            padding-bottom: 5px;
+            flex-wrap: wrap;
         }
         .tab-item {
-            color: #bdc3c7; padding: 10px; cursor: pointer;
-            font-weight: bold; font-size: 13px; text-transform: uppercase;
-            border-bottom: 3px solid transparent; transition: 0.3s; background: none;
+            color: #bdc3c7;
+            padding: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            text-transform: uppercase;
+            border-bottom: 3px solid transparent;
+            transition: 0.3s;
+            background: none;
         }
         .tab-item.active { color: white; border-bottom-color: #d4af37; }
+        .tab-item:hover { color: #e0e0e0; }
+
         .container { padding: 15px; max-width: 800px; margin: auto; width: 100%; flex: 1; }
 
+        /* ============ SECTION TITLE ============ */
         .section-title {
-            font-size: 15px; font-weight: bold; color: var(--primary-green);
-            margin: 15px 0 10px 0; display: flex; align-items: center; gap: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--primary-green);
+            margin: 15px 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         [data-theme="dark"] .section-title,
         [data-theme="amoled"] .section-title { color: #81d4fa; }
+        [data-theme="sepia"] .section-title { color: #8c6d3f; }
         .section-title i { color: #d4af37; }
         .section-title .badge {
-            background: var(--primary-green); color: white;
-            font-size: 11px; padding: 2px 10px; border-radius: 20px;
+            background: var(--primary-green);
+            color: white;
+            font-size: 11px;
+            padding: 2px 10px;
+            border-radius: 20px;
+        }
+
+        /* ============ UNIVERSAL LIST ============ */
+        .list-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .universal-row {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: all 0.2s;
+        }
+        .universal-row:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-color: var(--primary-green);
+        }
+        .row-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+            background: #e8f5e9;
+            color: var(--primary-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+            font-weight: 700;
+        }
+        [data-theme="dark"] .row-icon,
+        [data-theme="amoled"] .row-icon { background: rgba(27,77,62,0.4); color: #81d4fa; }
+        .row-icon.cover-thumb {
+            background: linear-gradient(135deg, var(--primary-green), #2c3e50);
+            color: white;
+            font-size: 18px;
+            overflow: hidden;
+        }
+        .row-info { flex-grow: 1; }
+        .row-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+        .row-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        .row-badge {
+            background: var(--bg);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .row-progress {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .mini-progress-bar {
+            width: 50px;
+            height: 4px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .mini-progress-fill {
+            height: 100%;
+            background: var(--primary-green);
+            border-radius: 4px;
+        }
+        .mini-progress-text {
+            font-size: 10px;
+            color: var(--text-muted);
         }
 
         /* ============ BOOK GRID ============ */
@@ -228,165 +366,217 @@
             align-items: center;
             justify-content: center;
         }
-        .book-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); border-color: var(--primary-green); }
+        .book-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border-color: var(--primary-green);
+        }
         .book-card:active { transform: scale(0.97); }
-        .book-emoji { font-size: 48px; text-align: center; }
+        .book-emoji {
+            font-size: 48px;
+            text-align: center;
+        }
         .book-badge {
-            position: absolute; top: 8px; right: 8px;
-            background: rgba(0,0,0,0.7); color: white;
-            font-size: 10px; padding: 3px 10px; border-radius: 20px; font-weight: bold;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            font-size: 10px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: bold;
             z-index: 5;
         }
         .book-overlay {
-            position: absolute; bottom: 0; left: 0; right: 0;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
             background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
-            padding: 20px 12px 12px; opacity: 0; transition: opacity 0.2s;
+            padding: 20px 12px 12px;
+            opacity: 0;
+            transition: opacity 0.2s;
         }
         .book-card:hover .book-overlay { opacity: 1; }
-        .book-overlay-title { color: white; font-size: 12px; font-weight: bold; text-align: center; line-height: 1.3; }
-        .book-overlay-author { color: #ccc; font-size: 10px; text-align: center; margin-top: 3px; }
+        .book-overlay-title {
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.3;
+        }
+        .book-overlay-author {
+            color: #ccc;
+            font-size: 10px;
+            text-align: center;
+            margin-top: 3px;
+        }
         .download-badge {
-            position: absolute; bottom: 8px; left: 8px;
-            font-size: 10px; padding: 2px 8px; border-radius: 10px;
-            background: rgba(0,0,0,0.6); color: #4ade80;
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.6);
+            color: #4ade80;
         }
-        .online-badge {
-            position: absolute; bottom: 8px; right: 8px;
-            font-size: 10px; padding: 2px 8px; border-radius: 10px;
-            background: rgba(0,0,0,0.6); color: #facc15;
-        }
-
-        /* ============ CONTINUE LIST ============ */
-        .continue-list {
-            display: flex; gap: 12px; overflow-x: auto;
-            padding: 5px 0 10px 0; scroll-snap-type: x mandatory;
-        }
-        .continue-card {
-            min-width: 280px; background: var(--primary-light);
-            border: 2px solid var(--primary-green); border-radius: var(--radius);
-            padding: 14px; display: flex; gap: 12px;
-            scroll-snap-align: start; cursor: pointer; transition: all 0.2s;
-        }
-        .continue-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
-        .continue-cover {
-            width: 55px; height: 75px; border-radius: 8px;
-            background: linear-gradient(135deg, var(--primary-green), #2c3e50);
-            display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 24px; flex-shrink: 0;
-        }
-        .continue-info { flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
-        .continue-title { font-size: 13px; font-weight: bold; color: var(--primary-green); line-height: 1.3; }
-        .continue-author { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-        .progress-bar { height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; margin-top: 8px; }
-        .progress-fill { height: 100%; background: var(--primary-green); border-radius: 4px; }
-        .progress-text { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+        .download-badge:empty { display: none; }
 
         /* ============ TAB CONTENT ============ */
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-        .list-wrapper { display: flex; flex-direction: column; gap: 8px; }
-        .universal-row {
-            background: var(--card-bg); border: 1px solid var(--border);
-            border-radius: var(--radius); padding: 12px 16px;
-            display: flex; align-items: center; gap: 12px;
-            cursor: pointer; box-shadow: var(--shadow); transition: all 0.2s;
-        }
-        .universal-row:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-color: var(--primary-green); }
-        .row-icon {
-            width: 45px; height: 45px; border-radius: 10px;
-            background: #e8f5e9; color: var(--primary-green);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 20px; flex-shrink: 0; font-weight: 700;
-        }
-        [data-theme="dark"] .row-icon,
-        [data-theme="amoled"] .row-icon { background: rgba(27,77,62,0.4); color: #81d4fa; }
-        .row-info { flex-grow: 1; }
-        .row-title { font-size: 14px; font-weight: bold; color: var(--text-dark); }
-        .row-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-        .row-badge {
-            background: var(--bg); padding: 4px 12px; border-radius: 20px;
-            font-size: 11px; color: var(--text-muted); font-weight: 500; white-space: nowrap;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* ============ BOTTOM NAV ============ */
         .bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            height: var(--bottom-nav); background: var(--surface);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: var(--bottom-nav);
+            background: var(--surface);
             border-top: 1px solid var(--border);
-            display: flex; justify-content: space-around; z-index: 1000;
+            display: flex;
+            justify-content: space-around;
+            z-index: 1000;
             box-shadow: 0 -2px 15px rgba(0,0,0,0.08);
         }
         .nav-link {
-            flex: 1; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; gap: 4px;
-            color: var(--text-muted); font-size: 11px; font-weight: 500;
-            cursor: pointer; transition: color 0.2s; background: none; border: none;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.2s;
+            background: none;
+            border: none;
         }
         .nav-link i { font-size: 22px; }
         .nav-link.active { color: var(--primary-green); font-weight: bold; }
+        [data-theme="dark"] .nav-link.active,
+        [data-theme="amoled"] .nav-link.active { color: #81d4fa; }
 
         /* ============ LOADING OVERLAY ============ */
         .loading-overlay {
-            display: none; position: fixed; inset: 0;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
-            z-index: 9999; justify-content: center; align-items: center;
-            flex-direction: column; gap: 20px;
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 20px;
         }
         .loading-overlay.show { display: flex; }
         .loading-overlay .loader-text { color: white; font-size: 18px; font-family: var(--font-ml); }
         .loading-overlay .loader-spinner {
-            width: 60px; height: 60px;
-            border: 5px solid rgba(255,255,255,0.2); border-top: 5px solid #facc15;
-            border-radius: 50%; animation: spin 0.8s linear infinite;
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255,255,255,0.2);
+            border-top: 5px solid #facc15;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
         }
 
-        /* ============ READER VIEW - PDF LIKE ============ */
+        /* ============ READER VIEW ============ */
         #readerView {
-            display: none; position: fixed; inset: 0;
-            background: var(--bg); z-index: 2000; flex-direction: column;
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 2000;
+            flex-direction: column;
         }
         #readerView.show { display: flex; }
 
         .reader-header {
-            background: var(--surface); padding: 10px 16px;
-            display: flex; align-items: center; gap: 10px;
-            flex-shrink: 0; border-bottom: 1px solid var(--border);
-            box-shadow: var(--shadow); z-index: 10;
+            background: var(--surface);
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            z-index: 10;
         }
         .back-btn {
-            width: 38px; height: 38px; border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 18px; color: var(--text-dark); cursor: pointer;
-            background: none; border: none; transition: all 0.2s;
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--text-dark);
+            cursor: pointer;
+            background: none;
+            border: none;
+            transition: all 0.2s;
         }
         .back-btn:hover { background: var(--bg); }
-        .reader-title { flex: 1; font-size: 15px; font-weight: bold; text-align: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-        .reader-header-actions { display: flex; gap: 4px; }
+        .reader-title {
+            flex: 1;
+            font-size: 15px;
+            font-weight: bold;
+            text-align: center;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .reader-header-actions {
+            display: flex;
+            gap: 4px;
+        }
         .reader-header-actions .icon-btn {
-            width: 38px; height: 38px; border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 16px; color: var(--text-muted); cursor: pointer;
-            background: none; border: none; transition: all 0.2s;
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: var(--text-muted);
+            cursor: pointer;
+            background: none;
+            border: none;
+            transition: all 0.2s;
         }
         .reader-header-actions .icon-btn:hover { background: var(--bg); color: var(--primary-green); }
 
-        /* PDF-like Continuous Scroll */
+        /* TOC Button */
+        .reader-header-actions .toc-btn { color: var(--text-muted); }
+        .reader-header-actions .toc-btn:hover { color: var(--primary-green); }
+
         .reader-content {
-            flex: 1; overflow-y: auto; padding: 25px 20px 80px 20px;
+            flex: 1;
+            overflow-y: auto;
+            padding: 25px 20px 80px 20px;
             scroll-behavior: smooth;
         }
         .reader-inner {
-            max-width: var(--reader-width); margin: auto;
+            max-width: var(--reader-width);
+            margin: auto;
             line-height: var(--reader-line-height);
             font-size: var(--font-scale);
             text-align: var(--reader-align);
         }
 
         .page-block {
-            margin-bottom: 40px;
-            padding: 25px 30px;
+            margin-bottom: 30px;
+            padding: 20px 25px;
             background: var(--card-bg);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
@@ -394,53 +584,51 @@
             transition: all 0.3s;
         }
         .page-block:last-child { margin-bottom: 0; }
-
-        .page-block .chapter-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--primary-green);
-            text-align: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid var(--primary-green);
-            font-family: var(--font-ar);
-        }
-        [data-theme="dark"] .page-block .chapter-title,
-        [data-theme="amoled"] .page-block .chapter-title { color: #81d4fa; border-bottom-color: #81d4fa; }
+        .page-block.current { border-left: 4px solid var(--primary-green); background: var(--primary-light); }
 
         .page-meta {
-            font-size: 11px; color: var(--text-muted);
-            text-align: center; margin-bottom: 15px;
-            font-weight: bold; letter-spacing: 1px; text-transform: uppercase;
-        }
-
-        .page-block ::selection {
-            background: #d4af37;
-            color: #1b4d3e;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
         .lang-ar {
-            font-family: var(--reader-font-ar); direction: rtl;
-            margin-bottom: 14px; color: #1a5f7a;
-            line-height: 2.4; font-weight: 700;
+            font-family: var(--reader-font-ar);
+            direction: rtl;
+            margin-bottom: 14px;
+            color: #1a5f7a;
+            line-height: 2.4;
+            font-weight: 700;
             font-size: calc(var(--font-scale) + 6px);
         }
         [data-theme="dark"] .lang-ar,
         [data-theme="amoled"] .lang-ar { color: #81d4fa; }
-        
         .lang-ml {
-            font-family: var(--reader-font-ml); direction: ltr;
-            margin-bottom: 12px; color: var(--text-dark);
-            line-height: 2.2; font-size: var(--font-scale);
+            font-family: var(--reader-font-ml);
+            direction: ltr;
+            margin-bottom: 12px;
+            color: var(--text-dark);
+            line-height: 2.2;
+            font-size: var(--font-scale);
         }
         .lang-en {
-            font-family: var(--reader-font-en); direction: ltr;
-            margin-bottom: 12px; color: var(--text-muted);
-            font-style: italic; border-top: 1px dashed var(--border);
-            padding-top: 15px; margin-top: 10px;
-            line-height: 2; font-size: calc(var(--font-scale) - 1px);
+            font-family: var(--reader-font-en);
+            direction: ltr;
+            margin-bottom: 12px;
+            color: var(--text-muted);
+            font-style: italic;
+            border-top: 1px dashed var(--border);
+            padding-top: 15px;
+            margin-top: 10px;
+            line-height: 2;
+            font-size: calc(var(--font-scale) - 1px);
         }
 
+        /* Quote Button */
         .quote-btn {
             display: inline-flex;
             align-items: center;
@@ -492,70 +680,69 @@
         .selection-popup .copy-btn { background: var(--bg); color: var(--text-dark); }
         .selection-popup .copy-btn:hover { background: var(--border); }
 
-        /* ============ READER CONTROLS ============ */
         .reader-controls {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: var(--surface); border-top: 1px solid var(--border);
-            padding: 10px 16px; display: flex; justify-content: space-around;
-            align-items: center; gap: 4px;
-            box-shadow: 0 -2px 20px rgba(0,0,0,0.06); z-index: 100;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 -2px 20px rgba(0,0,0,0.06);
+            z-index: 100;
         }
         .reader-controls .icon-btn {
-            width: 38px; height: 38px; border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 15px; color: var(--text-muted); cursor: pointer;
-            background: none; border: none; transition: all 0.2s;
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            color: var(--text-muted);
+            cursor: pointer;
+            background: none;
+            border: none;
+            transition: all 0.2s;
         }
-        .reader-controls .icon-btn:hover { background: var(--bg); color: var(--primary-green); }
-        .reader-controls .icon-btn.active { background: var(--primary-green); color: white; }
-        .font-display { font-size: 12px; font-weight: bold; color: var(--text-muted); min-width: 40px; text-align: center; }
+        .reader-controls .icon-btn:hover {
+            background: var(--bg);
+            color: var(--primary-green);
+        }
+        .reader-controls .icon-btn.active {
+            background: var(--primary-green);
+            color: white;
+        }
+        .font-display {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--text-muted);
+            min-width: 40px;
+            text-align: center;
+        }
 
         /* ============ TOC MODAL ============ */
-        .modal-overlay {
-            display: none; position: fixed; inset: 0;
-            background: rgba(0,0,0,0.5); z-index: 3000;
-            animation: fadeInOverlay 0.2s ease;
-        }
-        .modal-overlay.show { display: block; }
-        @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
-
-        .modal-box {
-            display: none; position: fixed; bottom: 0; left: 50%;
-            transform: translateX(-50%);
-            width: 100%; max-width: 500px; max-height: 85vh;
-            background: var(--surface); border-radius: 20px 20px 0 0;
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.2); z-index: 3001;
-            flex-direction: column; animation: slideUp 0.3s cubic-bezier(0.4,0,0.2,1);
-        }
-        .modal-box.show { display: flex; }
-        @keyframes slideUp { from { transform: translateX(-50%) translateY(100%); } to { transform: translateX(-50%) translateY(0); } }
-
-        .modal-header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0;
-        }
-        .modal-header h3 { font-size: 16px; font-weight: bold; color: var(--text-dark); }
-        .modal-close {
-            width: 36px; height: 36px; border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 18px; color: var(--text-muted); cursor: pointer;
-            background: none; border: none;
-        }
-        .modal-close:hover { background: var(--bg); }
-        .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
-
-        /* TOC Styles */
+        #tocModal .modal-body { padding: 0; }
         .toc-breadcrumb {
-            padding: 10px 16px; background: var(--bg);
+            padding: 10px 16px;
+            background: var(--bg);
             border-bottom: 1px solid var(--border);
-            font-size: 13px; color: var(--text-muted);
+            font-size: 13px;
+            color: var(--text-muted);
         }
         .toc-breadcrumb span { color: var(--primary-green); cursor: pointer; }
         .toc-breadcrumb span:hover { text-decoration: underline; }
         .toc-item {
-            padding: 12px 16px; border-bottom: 1px solid var(--border);
-            cursor: pointer; display: flex; justify-content: space-between;
-            align-items: center; transition: all 0.2s;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .toc-item:hover { background: var(--bg); }
         .toc-item.active { background: var(--primary-light); border-left: 3px solid var(--primary-green); }
@@ -564,39 +751,7 @@
         .toc-item-badge { font-size: 10px; background: var(--bg); padding: 2px 10px; border-radius: 12px; color: var(--text-muted); }
         .toc-toggle { color: var(--primary-green); padding: 4px 8px; }
 
-        /* ============ SETTINGS MODAL ============ */
-        .settings-section { margin-bottom: 20px; }
-        .settings-label {
-            font-size: 11px; font-weight: bold; color: var(--text-muted);
-            margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        .theme-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
-        }
-        .theme-btn {
-            padding: 10px; border: 2px solid var(--border); border-radius: 8px;
-            text-align: center; font-size: 12px; font-weight: bold; cursor: pointer;
-            background: var(--bg); color: var(--text-dark); transition: all 0.2s;
-        }
-        .theme-btn.active { border-color: var(--primary-green); background: var(--primary-light); color: var(--primary-green); }
-        .settings-options { display: flex; gap: 6px; flex-wrap: wrap; }
-        .btn-opt {
-            background: var(--bg); border: 1px solid var(--border);
-            color: var(--text-dark); padding: 8px 14px; border-radius: 8px;
-            font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;
-        }
-        .btn-opt:hover { border-color: var(--primary-green); color: var(--primary-green); }
-        .btn-opt.active { background: var(--primary-green); color: white; border-color: var(--primary-green); }
-        .setting-row {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 14px; background: var(--bg); border-radius: 8px;
-            margin-bottom: 5px; font-size: 13px; border: 1px solid var(--border);
-            color: var(--text-dark);
-        }
-        .setting-row input[type="range"] { width: 150px; accent-color: var(--primary-green); }
-        .setting-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary-green); }
-
-        /* Quote Modal */
+        /* ============ QUOTE MODAL ============ */
         #quoteModal .modal-body {
             background: var(--card-bg);
             border-radius: var(--radius);
@@ -626,15 +781,162 @@
         }
         .quote-source strong { color: var(--primary-green); }
 
+        /* ============ SETTINGS MODAL ============ */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 3000;
+            animation: fadeInOverlay 0.2s ease;
+        }
+        .modal-overlay.show { display: block; }
+        @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-box {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 500px;
+            max-height: 85vh;
+            background: var(--surface);
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
+            z-index: 3001;
+            flex-direction: column;
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-box.show { display: flex; }
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(100%); }
+            to { transform: translateX(-50%) translateY(0); }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .modal-header h3 {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--text-muted);
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+        .modal-close:hover { background: var(--bg); }
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .settings-section {
+            margin-bottom: 20px;
+        }
+        .settings-label {
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .theme-btn {
+            padding: 10px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            background: var(--bg);
+            color: var(--text-dark);
+            transition: all 0.2s;
+        }
+        .theme-btn.active {
+            border-color: var(--primary-green);
+            background: var(--primary-light);
+            color: var(--primary-green);
+        }
+        .settings-options {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .btn-opt {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-dark);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-opt:hover {
+            border-color: var(--primary-green);
+            color: var(--primary-green);
+        }
+        .btn-opt.active {
+            background: var(--primary-green);
+            color: white;
+            border-color: var(--primary-green);
+        }
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: var(--bg);
+            border-radius: 8px;
+            margin-bottom: 5px;
+            font-size: 13px;
+            border: 1px solid var(--border);
+            color: var(--text-dark);
+        }
+        .setting-row input[type="range"] {
+            width: 150px;
+            accent-color: var(--primary-green);
+        }
+        .setting-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-green);
+        }
+
         @media (max-width: 600px) {
             .book-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
             .modal-box { max-width: 100%; }
             .theme-grid { grid-template-columns: repeat(2, 1fr); }
             .reader-content { padding: 20px 15px 80px 15px; }
             .lang-ar { font-size: calc(var(--font-scale) + 2px); }
-            .page-block { padding: 18px 15px; }
-            .selection-popup { padding: 6px 10px; }
-            .selection-popup button { padding: 4px 10px; font-size: 12px; }
+            .page-block { padding: 15px; }
         }
     </style>
 </head>
@@ -687,10 +989,13 @@
     </header>
 
     <div class="container">
+        <!-- ALL BOOKS TAB -->
         <div class="tab-content active" id="tab-all">
-            <div class="section-title"><i class="fas fa-history"></i> Continue Reading</div>
-            <div class="continue-list" id="continueList">
-                <div style="color:var(--text-muted); padding:10px; text-align:center; width:100%;">
+            <div class="section-title">
+                <i class="fas fa-history"></i> Continue Reading
+            </div>
+            <div class="list-wrapper" id="continueList">
+                <div style="color:var(--text-muted); padding:10px; text-align:center;">
                     <i class="fas fa-hourglass-half"></i> Loading...
                 </div>
             </div>
@@ -706,21 +1011,34 @@
             </div>
         </div>
 
+        <!-- CATEGORIES TAB -->
         <div class="tab-content" id="tab-categories">
-            <div class="section-title"><i class="fas fa-tags"></i> Categories <span class="badge" id="categoryCount">0</span></div>
+            <div class="section-title">
+                <i class="fas fa-tags"></i> Categories
+                <span class="badge" id="categoryCount">0</span>
+            </div>
             <div class="list-wrapper" id="categoryList">
-                <div style="color:var(--text-muted); padding:20px; text-align:center;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+                <div style="color:var(--text-muted); padding:20px; text-align:center;">
+                    <i class="fas fa-spinner fa-spin"></i> Loading...
+                </div>
             </div>
         </div>
 
+        <!-- AUTHORS TAB -->
         <div class="tab-content" id="tab-authors">
-            <div class="section-title"><i class="fas fa-pen-nib"></i> Authors <span class="badge" id="authorCount">0</span></div>
+            <div class="section-title">
+                <i class="fas fa-pen-nib"></i> Authors
+                <span class="badge" id="authorCount">0</span>
+            </div>
             <div class="list-wrapper" id="authorList">
-                <div style="color:var(--text-muted); padding:20px; text-align:center;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+                <div style="color:var(--text-muted); padding:20px; text-align:center;">
+                    <i class="fas fa-spinner fa-spin"></i> Loading...
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Bottom Navigation -->
     <nav class="bottom-nav">
         <button class="nav-link active"><i class="fas fa-home"></i>Home</button>
         <button class="nav-link"><i class="fas fa-book"></i>Library</button>
@@ -734,7 +1052,7 @@
         <button class="back-btn" onclick="closeReader()"><i class="fas fa-arrow-left"></i></button>
         <span class="reader-title" id="readerTitle">Book Title</span>
         <div class="reader-header-actions">
-            <button class="icon-btn" onclick="openTOC()" title="Table of Contents"><i class="fas fa-list-ul"></i></button>
+            <button class="icon-btn toc-btn" onclick="openTOC()" title="Table of Contents"><i class="fas fa-list-ul"></i></button>
             <button class="icon-btn" onclick="downloadFullBook()" title="Download Book"><i class="fas fa-download"></i></button>
             <button class="icon-btn" onclick="openSettings()" title="Settings"><i class="fas fa-sliders-h"></i></button>
         </div>
@@ -840,11 +1158,26 @@
 
         <div class="settings-section">
             <div class="settings-label">📖 Reader Settings</div>
-            <div class="setting-row"><span>Font Size</span><input type="range" min="14" max="30" value="18" oninput="updateFontSize(this.value)"></div>
-            <div class="setting-row"><span>Line Height</span><input type="range" min="1.5" max="2.8" step="0.1" value="2.0" oninput="updateLineHeight(this.value)"></div>
-            <div class="setting-row"><span>Show Arabic</span><input type="checkbox" checked onchange="toggleLanguage('ar', this.checked)"></div>
-            <div class="setting-row"><span>Show Malayalam</span><input type="checkbox" checked onchange="toggleLanguage('ml', this.checked)"></div>
-            <div class="setting-row"><span>Show English</span><input type="checkbox" checked onchange="toggleLanguage('en', this.checked)"></div>
+            <div class="setting-row">
+                <span>Font Size</span>
+                <input type="range" min="14" max="30" value="18" oninput="updateFontSize(this.value)">
+            </div>
+            <div class="setting-row">
+                <span>Line Height</span>
+                <input type="range" min="1.5" max="2.5" step="0.1" value="2.0" oninput="updateLineHeight(this.value)">
+            </div>
+            <div class="setting-row">
+                <span>Show Arabic</span>
+                <input type="checkbox" checked onchange="toggleLanguage('ar', this.checked)">
+            </div>
+            <div class="setting-row">
+                <span>Show Malayalam</span>
+                <input type="checkbox" checked onchange="toggleLanguage('ml', this.checked)">
+            </div>
+            <div class="setting-row">
+                <span>Show English</span>
+                <input type="checkbox" checked onchange="toggleLanguage('en', this.checked)">
+            </div>
         </div>
 
         <div class="settings-section">
@@ -866,7 +1199,7 @@
 
 <script>
     // ================================================================
-    // CONFIG
+    // 🔑 SUPABASE CREDENTIALS - ഇത് SUPABASE_CONFIG-ൽ നിന്ന് എടുക്കുന്നു
     // ================================================================
     let supabaseClient = null;
     let allBooks = [];
@@ -879,6 +1212,9 @@
     let isOnline = true;
     let isSupabaseConnected = false;
 
+    // Current Book Info
+    let currentBookInfo = { title: '', author: '' };
+
     // TOC State
     let tocTree = [];
     let tocPath = [];
@@ -887,9 +1223,6 @@
     let selectedText = '';
     let selectedLang = '';
     let selectedRange = null;
-
-    // Current Book Info
-    let currentBookInfo = { title: '', author: '' };
 
     // ================================================================
     // INDEXEDDB ENGINE
@@ -910,7 +1243,10 @@
                         db.createObjectStore("metadata", { keyPath: "key" });
                     }
                 };
-                req.onsuccess = (e) => { this.db = e.target.result; resolve(this.db); };
+                req.onsuccess = (e) => {
+                    this.db = e.target.result;
+                    resolve(this.db);
+                };
                 req.onerror = (e) => reject(e.target.error);
             });
         },
@@ -991,9 +1327,13 @@
     function updateOnlineStatus() {
         isOnline = navigator.onLine;
         const indicator = document.getElementById('offlineIndicator');
-        if (!isOnline) {
+        if (!isOnline || !isSupabaseConnected) {
             indicator.classList.add('show');
-            indicator.textContent = '📴 Offline Mode - Showing Downloaded Books Only';
+            if (!isOnline) {
+                indicator.textContent = '📴 No Internet Connection - Showing Downloaded Books Only';
+            } else {
+                indicator.textContent = '📴 Offline Mode - Showing Downloaded Books Only';
+            }
         } else {
             indicator.classList.remove('show');
         }
@@ -1008,6 +1348,56 @@
         }
     });
     window.addEventListener('offline', updateOnlineStatus);
+
+    // ================================================================
+    // LOAD BOOKS OFFLINE
+    // ================================================================
+    async function loadBooksOffline() {
+        try {
+            const idbBooks = await IDB.getAllBooks();
+            if (!idbBooks || idbBooks.length === 0) return null;
+
+            const cachedCatalog = localStorage.getItem('library_books');
+            let catalogBooks = [];
+            if (cachedCatalog) {
+                try {
+                    catalogBooks = JSON.parse(cachedCatalog);
+                } catch(e) {}
+            }
+
+            if (catalogBooks.length === 0) {
+                catalogBooks = idbBooks.map(item => ({
+                    id: item.bookId,
+                    title_ml: item.bookId,
+                    title_ar: item.bookId,
+                    author: 'Unknown',
+                    parts: 1,
+                    cover_url: '📖',
+                    downloaded: true,
+                    total_pages: item.data ? item.data.length : 0
+                }));
+            } else {
+                catalogBooks.forEach(book => {
+                    const idbData = idbBooks.find(b => b.bookId === book.id);
+                    if (idbData) {
+                        book.downloaded = true;
+                        book.total_pages = idbData.data ? idbData.data.length : 0;
+                    }
+                });
+                catalogBooks = catalogBooks.filter(b => b.downloaded);
+            }
+
+            if (catalogBooks.length === 0) return null;
+
+            allBooks = catalogBooks;
+            localStorage.setItem('library_books', JSON.stringify(allBooks));
+            return catalogBooks;
+
+        } catch(err) {
+            console.error('Offline load error:', err);
+            return null;
+        }
+    }
 
     // ================================================================
     // INIT APP
@@ -1029,9 +1419,10 @@
                 updateStorageInfo();
                 document.getElementById('homeView').classList.add('show');
                 document.getElementById('loader').classList.add('hidden');
+                document.getElementById('loadSubStatus').textContent = '📴 Offline Mode';
             }
 
-            // Try to connect to Supabase
+            // Check if Supabase credentials exist
             if (!SUPABASE_CONFIG.URL || SUPABASE_CONFIG.URL === 'https://your-project.supabase.co') {
                 document.getElementById('loadStatus').textContent = '⚠️ Supabase credentials missing!';
                 document.getElementById('loadSubStatus').textContent = 'Using offline mode...';
@@ -1040,6 +1431,7 @@
 
             supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.KEY);
             
+            // Test connection
             const { data, error } = await supabaseClient
                 .from('master_catalog')
                 .select('*')
@@ -1049,6 +1441,7 @@
                 isSupabaseConnected = false;
                 document.getElementById('loadStatus').textContent = '⚠️ Offline Mode';
                 document.getElementById('loadSubStatus').textContent = 'Showing downloaded books only';
+                updateOnlineStatus();
                 if (!cachedBooks || cachedBooks.length === 0) {
                     document.getElementById('bookGrid').innerHTML = 
                         `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);">
@@ -1067,12 +1460,15 @@
             document.getElementById('loader').classList.add('hidden');
             document.getElementById('homeView').classList.add('show');
             document.getElementById('loadSubStatus').textContent = '✅ Connected!';
+            updateOnlineStatus();
             await loadBooks();
 
         } catch(err) {
             isSupabaseConnected = false;
             document.getElementById('loadStatus').textContent = '⚠️ Offline Mode';
             document.getElementById('loadSubStatus').textContent = 'Showing downloaded books only';
+            updateOnlineStatus();
+            
             const cachedBooks = await loadBooksOffline();
             if (cachedBooks && cachedBooks.length > 0) {
                 allBooks = cachedBooks;
@@ -1101,72 +1497,6 @@
         document.getElementById('loader').classList.remove('hidden');
         document.getElementById('loadStatus').textContent = '🔄 Reconnecting...';
         initApp();
-    }
-
-    // ================================================================
-    // LOAD BOOKS OFFLINE
-    // ================================================================
-    async function loadBooksOffline() {
-        try {
-            // Get all downloaded books from IndexedDB
-            const idbBooks = await IDB.getAllBooks();
-            if (!idbBooks || idbBooks.length === 0) return null;
-
-            // Get metadata about downloaded books
-            const meta = await IDB.getMeta('downloaded_books');
-            let downloadedList = [];
-            if (meta) {
-                try {
-                    downloadedList = JSON.parse(meta);
-                } catch(e) {}
-            }
-
-            // Get catalog from localStorage if available
-            const cachedCatalog = localStorage.getItem('library_books');
-            let catalogBooks = [];
-            if (cachedCatalog) {
-                try {
-                    catalogBooks = JSON.parse(cachedCatalog);
-                } catch(e) {}
-            }
-
-            // If no catalog, create from IDB data
-            if (catalogBooks.length === 0) {
-                catalogBooks = idbBooks.map(item => ({
-                    id: item.bookId,
-                    title_ml: item.bookId,
-                    title_ar: item.bookId,
-                    author: 'Unknown',
-                    parts: 1,
-                    cover_url: '📖',
-                    downloaded: true,
-                    total_pages: item.data ? item.data.length : 0
-                }));
-            } else {
-                // Mark downloaded status
-                catalogBooks.forEach(book => {
-                    const idbData = idbBooks.find(b => b.bookId === book.id);
-                    if (idbData) {
-                        book.downloaded = true;
-                        book.total_pages = idbData.data ? idbData.data.length : 0;
-                    }
-                });
-                // Filter only downloaded books
-                catalogBooks = catalogBooks.filter(b => b.downloaded);
-            }
-
-            if (catalogBooks.length === 0) return null;
-
-            // Set allBooks
-            allBooks = catalogBooks;
-            localStorage.setItem('library_books', JSON.stringify(allBooks));
-
-            return catalogBooks;
-
-        } catch(err) {
-            console.error('Offline load error:', err);
-            return null;
-        }
     }
 
     // ================================================================
@@ -1234,7 +1564,7 @@
                     <div class="book-overlay-title">${book.title_ml || book.title_ar || 'Book'}</div>
                     <div class="book-overlay-author">${book.author || 'Unknown'}</div>
                 </div>
-                ${isDownloaded ? '<div class="download-badge">✅ Downloaded</div>' : '<div class="online-badge">📡 Online</div>'}
+                ${isDownloaded ? '<div class="download-badge">✅ Downloaded</div>' : ''}
             </div>`;
         }).join('');
     }
@@ -1256,8 +1586,11 @@
         }
 
         const icons = {
-            'عقيدة': '🕋', 'علوم الحديث': '📜', 'لغة عربية': '📖',
-            'فقه': '🤲', 'تاريخ': '🏛️'
+            'عقيدة': '🕋',
+            'علوم الحديث': '📜',
+            'لغة عربية': '📖',
+            'فقه': '🤲',
+            'تاريخ': '🏛️'
         };
 
         list.innerHTML = Object.values(categories).map(cat => `
@@ -1370,7 +1703,8 @@
             const { data, error } = await supabaseClient
                 .from(tableName)
                 .select('*')
-                .order('ID', { ascending: true });
+                .order('ID', { ascending: true })
+                .limit(500);
 
             if (error) {
                 hideLoading();
@@ -1384,7 +1718,11 @@
                 return;
             }
 
-            totalPages = data.length;
+            const { count } = await supabaseClient
+                .from(tableName)
+                .select('*', { count: 'exact', head: true });
+            totalPages = count || data.length;
+
             currentPages = data.map(item => ({
                 id: item.ID,
                 sequence: item.ID,
@@ -1414,7 +1752,7 @@
             if (isOnline && !book.downloaded) {
                 setTimeout(() => {
                     downloadFullBook();
-                }, 2000);
+                }, 3000);
             }
 
         } catch(err) {
@@ -1434,9 +1772,6 @@
         }
 
         let html = '';
-        let currentPart = '';
-        let partIndex = 0;
-
         for (let i = 0; i < currentPages.length; i++) {
             const page = currentPages[i];
             if (!page) continue;
@@ -1444,21 +1779,11 @@
             const ar = page.Arabic || '';
             const ml = page.Malayalam || '';
             const en = page.English || '';
-            const part = page.part || '1';
-            const pageNum = page.page || (i + 1);
-
-            if (part !== currentPart) {
-                currentPart = part;
-                partIndex++;
-                html += `
-                    <div class="page-block" style="background:var(--primary-light); border-left: 4px solid var(--primary-green);">
-                        <div class="chapter-title">📖 ഭാഗം ${part}</div>
-                    </div>
-                `;
-            }
+            const part = page.part || '?';
+            const pageNum = page.page || '?';
 
             html += `
-                <div class="page-block" data-sequence="${page.sequence}" data-index="${i}">
+                <div class="page-block ${i === currentPageIndex ? 'current' : ''}" data-sequence="${page.sequence}" data-index="${i}">
                     <div class="page-meta">📄 പേജ് ${pageNum} / ഭാഗം ${part} (${i + 1}/${totalPages})</div>
                     <div class="lang-ar">${ar}</div>
                     <div class="lang-ml">${ml}</div>
@@ -1472,8 +1797,8 @@
 
         container.innerHTML = html;
         document.getElementById('readerContent').scrollTop = 0;
-        highlightCurrentPage();
 
+        // Save progress
         if (currentPages[currentPageIndex]) {
             localStorage.setItem(`progress_${currentBookId}`, JSON.stringify({
                 sequence: currentPages[currentPageIndex].sequence,
@@ -1483,43 +1808,7 @@
 
         buildTOC();
         updateContinueReading();
-    }
-
-    function highlightCurrentPage() {
-        const blocks = document.querySelectorAll('.page-block[data-index]');
-        blocks.forEach((block, idx) => {
-            const index = parseInt(block.dataset.index);
-            if (index === currentPageIndex) {
-                block.style.borderLeft = '4px solid var(--primary-green)';
-                block.style.background = 'var(--primary-light)';
-            } else {
-                block.style.borderLeft = 'none';
-                block.style.background = 'var(--card-bg)';
-            }
-        });
-    }
-
-    function quoteFullPage(index) {
-        const page = currentPages[index];
-        if (!page) return;
-
-        const ar = page.Arabic || '';
-        const ml = page.Malayalam || '';
-        const en = page.English || '';
-        const part = page.part || '?';
-        const pageNum = page.page || '?';
-
-        document.getElementById('quoteAr').textContent = ar.substring(0, 300) + (ar.length > 300 ? '...' : '');
-        document.getElementById('quoteMl').textContent = ml.substring(0, 300) + (ml.length > 300 ? '...' : '');
-        document.getElementById('quoteEn').textContent = en.substring(0, 300) + (en.length > 300 ? '...' : '');
-        document.getElementById('quoteSource').innerHTML = `
-            <strong>📖 ${currentBookInfo.title}</strong><br>
-            ✍️ ${currentBookInfo.author}<br>
-            📄 പേജ് ${pageNum} / ഭാഗം ${part}
-        `;
-
-        document.getElementById('quoteOverlay').classList.add('show');
-        document.getElementById('quoteModal').classList.add('show');
+        setupSelectionListener();
     }
 
     // ================================================================
@@ -1543,7 +1832,7 @@
 
         if (continues.length === 0) {
             list.innerHTML = `
-                <div style="color:var(--text-muted); padding:10px; text-align:center; width:100%;">
+                <div style="color:var(--text-muted); padding:10px; text-align:center;">
                     <i class="fas fa-book"></i> No books in progress. Start reading!
                 </div>
             `;
@@ -1555,17 +1844,15 @@
             const total = book.total_pages || 100;
             const progress = Math.min(100, Math.round((c.sequence / total) * 100));
             return `
-            <div class="continue-card" onclick="openBook('${book.id}')">
-                <div class="continue-cover">${book.cover_url || '📖'}</div>
-                <div class="continue-info">
-                    <div>
-                        <div class="continue-title">${book.title_ml || book.title_ar}</div>
-                        <div class="continue-author">${book.author || 'Unknown'}</div>
-                    </div>
-                    <div>
-                        <div class="progress-bar"><div class="progress-fill" style="width:${progress}%;"></div></div>
-                        <div class="progress-text">Page ${c.sequence || 1} of ${total}</div>
-                    </div>
+            <div class="universal-row" onclick="openBook('${book.id}')">
+                <div class="row-icon cover-thumb">${book.cover_url || '📖'}</div>
+                <div class="row-info">
+                    <div class="row-title">${book.title_ml || book.title_ar}</div>
+                    <div class="row-subtitle">${book.author || 'Unknown'}</div>
+                </div>
+                <div class="row-progress">
+                    <div class="mini-progress-bar"><div class="mini-progress-fill" style="width:${progress}%;"></div></div>
+                    <span class="mini-progress-text">${progress}%</span>
                 </div>
             </div>
         `}).join('');
@@ -1780,8 +2067,10 @@
         if (index >= 0 && index < currentPages.length) {
             currentPageIndex = index;
             closeTOC();
-            highlightCurrentPage();
             const blocks = document.querySelectorAll('.page-block[data-index]');
+            blocks.forEach((block, i) => {
+                block.classList.toggle('current', i === index);
+            });
             if (blocks[index]) {
                 blocks[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
@@ -1798,62 +2087,132 @@
     }
 
     // ================================================================
+    // QUOTE FULL PAGE
+    // ================================================================
+    function quoteFullPage(index) {
+        const page = currentPages[index];
+        if (!page) return;
+
+        const ar = page.Arabic || '';
+        const ml = page.Malayalam || '';
+        const en = page.English || '';
+        const part = page.part || '?';
+        const pageNum = page.page || '?';
+
+        document.getElementById('quoteAr').textContent = ar.substring(0, 500) + (ar.length > 500 ? '...' : '');
+        document.getElementById('quoteMl').textContent = ml.substring(0, 500) + (ml.length > 500 ? '...' : '');
+        document.getElementById('quoteEn').textContent = en.substring(0, 500) + (en.length > 500 ? '...' : '');
+        document.getElementById('quoteSource').innerHTML = `
+            <strong>📖 ${currentBookInfo.title}</strong><br>
+            ✍️ ${currentBookInfo.author}<br>
+            📄 പേജ് ${pageNum} / ഭാഗം ${part}
+        `;
+
+        document.getElementById('quoteOverlay').classList.add('show');
+        document.getElementById('quoteModal').classList.add('show');
+    }
+
+    function closeQuote() {
+        document.getElementById('quoteOverlay').classList.remove('show');
+        document.getElementById('quoteModal').classList.remove('show');
+    }
+
+    function copyQuote() {
+        const ar = document.getElementById('quoteAr').textContent;
+        const ml = document.getElementById('quoteMl').textContent;
+        const en = document.getElementById('quoteEn').textContent;
+        const source = document.getElementById('quoteSource').textContent.replace(/\s+/g, ' ').trim();
+        
+        let quote = '';
+        if (ar) quote += '🇦🇪 ' + ar + '\n\n';
+        if (ml) quote += '🇮🇳 ' + ml + '\n\n';
+        if (en) quote += '🇬🇧 ' + en + '\n\n';
+        quote += '— ' + source;
+
+        navigator.clipboard.writeText(quote).then(() => showToast('📋 Quote copied!')).catch(() => {
+            const textarea = document.createElement('textarea');
+            textarea.value = quote;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast('📋 Quote copied!');
+        });
+    }
+
+    function shareQuote() {
+        const ar = document.getElementById('quoteAr').textContent;
+        const ml = document.getElementById('quoteMl').textContent;
+        const en = document.getElementById('quoteEn').textContent;
+        const source = document.getElementById('quoteSource').textContent.replace(/\s+/g, ' ').trim();
+        
+        let quote = '';
+        if (ar) quote += '🇦🇪 ' + ar + '\n\n';
+        if (ml) quote += '🇮🇳 ' + ml + '\n\n';
+        if (en) quote += '🇬🇧 ' + en + '\n\n';
+        quote += '— ' + source;
+
+        if (navigator.share) {
+            navigator.share({ title: '📖 Quote from ' + currentBookInfo.title, text: quote }).catch(() => {});
+        } else {
+            copyQuote();
+        }
+    }
+
+    // ================================================================
     // TEXT SELECTION
     // ================================================================
     function setupSelectionListener() {
-        document.addEventListener('selectionchange', function() {
-            const selection = window.getSelection();
-            const popup = document.getElementById('selectionPopup');
-            
-            if (!selection || selection.isCollapsed || !selection.toString().trim()) {
-                popup.classList.remove('show');
-                return;
-            }
+        document.removeEventListener('selectionchange', selectionHandler);
+        document.addEventListener('selectionchange', selectionHandler);
+    }
 
-            const text = selection.toString().trim();
-            if (text.length < 3) {
-                popup.classList.remove('show');
-                return;
-            }
+    function selectionHandler() {
+        const selection = window.getSelection();
+        const popup = document.getElementById('selectionPopup');
+        
+        if (!selection || selection.isCollapsed || !selection.toString().trim()) {
+            popup.classList.remove('show');
+            return;
+        }
 
-            const readerInner = document.getElementById('readerInner');
-            if (!readerInner.contains(selection.anchorNode)) {
-                popup.classList.remove('show');
-                return;
-            }
+        const text = selection.toString().trim();
+        if (text.length < 3) {
+            popup.classList.remove('show');
+            return;
+        }
 
-            selectedText = text;
-            selectedRange = selection.getRangeAt(0);
-            
-            const parent = selection.anchorNode.parentElement;
-            if (parent) {
-                if (parent.classList.contains('lang-ar')) selectedLang = 'ar';
-                else if (parent.classList.contains('lang-ml')) selectedLang = 'ml';
-                else if (parent.classList.contains('lang-en')) selectedLang = 'en';
-                else selectedLang = 'ml';
-            }
+        const readerInner = document.getElementById('readerInner');
+        if (!readerInner.contains(selection.anchorNode)) {
+            popup.classList.remove('show');
+            return;
+        }
 
-            const rect = selection.getRangeAt(0).getBoundingClientRect();
-            const popupRect = popup.getBoundingClientRect();
-            let top = rect.top - popupRect.height - 10;
-            let left = rect.left + (rect.width / 2) - (popupRect.width / 2);
-            
-            if (top < 10) top = rect.bottom + 10;
-            if (left < 10) left = 10;
-            if (left + popupRect.width > window.innerWidth - 10) {
-                left = window.innerWidth - popupRect.width - 10;
-            }
-            
-            popup.style.top = top + 'px';
-            popup.style.left = left + 'px';
-            popup.classList.add('show');
-        });
+        selectedText = text;
+        selectedRange = selection.getRangeAt(0);
+        
+        const parent = selection.anchorNode.parentElement;
+        if (parent) {
+            if (parent.classList.contains('lang-ar')) selectedLang = 'ar';
+            else if (parent.classList.contains('lang-ml')) selectedLang = 'ml';
+            else if (parent.classList.contains('lang-en')) selectedLang = 'en';
+            else selectedLang = 'ml';
+        }
 
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.selection-popup')) {
-                document.getElementById('selectionPopup').classList.remove('show');
-            }
-        });
+        const rect = selection.getRangeAt(0).getBoundingClientRect();
+        const popupRect = popup.getBoundingClientRect();
+        let top = rect.top - popupRect.height - 10;
+        let left = rect.left + (rect.width / 2) - (popupRect.width / 2);
+        
+        if (top < 10) top = rect.bottom + 10;
+        if (left < 10) left = 10;
+        if (left + popupRect.width > window.innerWidth - 10) {
+            left = window.innerWidth - popupRect.width - 10;
+        }
+        
+        popup.style.top = top + 'px';
+        popup.style.left = left + 'px';
+        popup.classList.add('show');
     }
 
     function shareSelection() {
@@ -1940,53 +2299,6 @@
         document.getElementById('selectionPopup').classList.remove('show');
     }
 
-    function closeQuote() {
-        document.getElementById('quoteOverlay').classList.remove('show');
-        document.getElementById('quoteModal').classList.remove('show');
-    }
-
-    function copyQuote() {
-        const ar = document.getElementById('quoteAr').textContent;
-        const ml = document.getElementById('quoteMl').textContent;
-        const en = document.getElementById('quoteEn').textContent;
-        const source = document.getElementById('quoteSource').textContent.replace(/\s+/g, ' ').trim();
-        
-        let quote = '';
-        if (ar) quote += '🇦🇪 ' + ar + '\n\n';
-        if (ml) quote += '🇮🇳 ' + ml + '\n\n';
-        if (en) quote += '🇬🇧 ' + en + '\n\n';
-        quote += '— ' + source;
-
-        navigator.clipboard.writeText(quote).then(() => showToast('📋 Quote copied!')).catch(() => {
-            const textarea = document.createElement('textarea');
-            textarea.value = quote;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-            showToast('📋 Quote copied!');
-        });
-    }
-
-    function shareQuote() {
-        const ar = document.getElementById('quoteAr').textContent;
-        const ml = document.getElementById('quoteMl').textContent;
-        const en = document.getElementById('quoteEn').textContent;
-        const source = document.getElementById('quoteSource').textContent.replace(/\s+/g, ' ').trim();
-        
-        let quote = '';
-        if (ar) quote += '🇦🇪 ' + ar + '\n\n';
-        if (ml) quote += '🇮🇳 ' + ml + '\n\n';
-        if (en) quote += '🇬🇧 ' + en + '\n\n';
-        quote += '— ' + source;
-
-        if (navigator.share) {
-            navigator.share({ title: '📖 Quote from ' + currentBookInfo.title, text: quote }).catch(() => {});
-        } else {
-            copyQuote();
-        }
-    }
-
     // ================================================================
     // TOAST
     // ================================================================
@@ -2032,6 +2344,7 @@
         closeTOC();
         closeQuote();
         updateContinueReading();
+        document.getElementById('selectionPopup').classList.remove('show');
     }
 
     function changeFontSize(delta) {
@@ -2262,8 +2575,6 @@
             document.querySelector(`#settingsModal .setting-row input[onchange*="${lang}"]`).checked = show;
             toggleLanguage(lang, show);
         });
-
-        setupSelectionListener();
     }
 
     // ================================================================
