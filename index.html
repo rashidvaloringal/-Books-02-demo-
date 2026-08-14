@@ -4,21 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#1b4d3e">
-    <title>📚 Islamic Digital Library Pro - Full Stack Edition</title>
+    <title>📚 Islamic Digital Library Pro</title>
 
-    <!-- Supabase JS Client (v2) -->
+    <!-- Supabase Credentials -->
+    <script>
+        const SUPABASE_CONFIG = {
+            URL: 'https://axjeqkeocbfemojomfjm.supabase.co',
+            KEY: 'sb_publishable_JgdXpn2s46NfLu0wNHU_9w_Cj9ewUKE'
+        };
+    </script>
+
+    <!-- External Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     
-    <!-- Google Fonts Integration -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&family=Noto+Sans+Malayalam:wght@400;500;700&family=Noto+Sans:wght@400;500;700&family=Noto+Serif+Malayalam:wght@400;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,700;1,8..60,400&family=Inter:wght@400;500;600;700&family=Manjari:wght@400;700&family=Chilanka&family=Gayathri&family=Scheherazade+New:wght@400;700&family=Lateef&display=swap" rel="stylesheet">
 
     <style>
-        /* ============ ROOT & THEME DEFINITIONS ============ */
+        /* ============ ROOT VARIABLES & THEMES ============ */
         :root {
             --primary-green: #1b4d3e;
             --primary-light: #e8f3ee;
@@ -94,30 +100,34 @@
 
         button, input, select { font-family: inherit; border: none; outline: none; background: transparent; color: inherit; }
 
-        /* ===== SYNC BADGE & LOADERS ===== */
-        .sync-badge {
+        /* ===== TOAST NOTIFICATION ===== */
+        #toastBox {
             position: fixed;
-            top: 15px;
-            right: 15px;
-            z-index: 10000;
-            background: var(--primary-green);
+            bottom: 85px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(27, 77, 62, 0.95);
             color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 13px;
             font-weight: bold;
-            display: none;
+            z-index: 10000;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            display: flex;
             align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-            animation: slideDown 0.3s ease;
+            gap: 10px;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            backdrop-filter: blur(4px);
         }
-        .sync-badge.show { display: flex; }
-        @keyframes slideDown {
-            from { transform: translateY(-100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        #toastBox.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
         }
 
+        /* ===== LOADERS ===== */
         #loader {
             position: fixed;
             inset: 0;
@@ -147,8 +157,8 @@
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.65);
-            backdrop-filter: blur(4px);
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
             z-index: 9998;
             justify-content: center;
             align-items: center;
@@ -164,7 +174,7 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
-        .loader-text { color: white; font-size: 15px; font-weight: bold; }
+        .loader-text { color: white; font-size: 14px; font-weight: bold; text-align: center; max-width: 80%; line-height: 1.4; }
 
         /* ===== HEADER & NAVIGATION ===== */
         header.home-header {
@@ -263,7 +273,7 @@
             margin-left: 6px;
         }
 
-        /* ===== UNIVERSAL LIST & GRID ===== */
+        /* ===== BOOK CARD & LIST DESIGNS ===== */
         .list-wrapper { display: flex; flex-direction: column; gap: 10px; }
         
         .universal-row {
@@ -278,12 +288,11 @@
             cursor: pointer;
             box-shadow: var(--shadow);
             transition: transform 0.15s;
-            position: relative;
         }
         .universal-row:hover { transform: translateY(-2px); }
         .row-icon {
             width: 44px;
-            height: 60px;
+            height: 55px;
             background: var(--primary-light);
             color: var(--primary-green);
             display: flex;
@@ -293,14 +302,6 @@
             font-size: 18px;
             font-weight: bold;
             flex-shrink: 0;
-            overflow: hidden;
-        }
-        .cover-thumb {
-            width: 44px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 4px;
-            flex-shrink: 0;
             background-size: cover;
             background-position: center;
         }
@@ -309,10 +310,10 @@
         .row-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
         .row-badge { font-size: 11px; background: var(--primary-light); color: var(--primary-green); padding: 3px 8px; border-radius: 6px; font-weight: 600; flex-shrink: 0; }
 
-        /* Book Grid Layout */
+        /* Book Grid with Action Buttons */
         .book-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             gap: 15px;
         }
         .book-card {
@@ -323,14 +324,12 @@
             border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            cursor: pointer;
-            position: relative;
             transition: transform 0.2s;
         }
         .book-card:hover { transform: translateY(-3px); }
         .book-card-cover {
             width: 100%;
-            height: 170px;
+            height: 150px;
             background: #eee;
             display: flex;
             align-items: center;
@@ -339,17 +338,8 @@
             color: white;
             background-size: cover;
             background-position: center;
+            position: relative;
         }
-        .book-details {
-            padding: 10px;
-            text-align: center;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .book-details-title { font-size: 13px; font-weight: bold; line-height: 1.3; margin-bottom: 4px; }
-        .book-details-author { font-size: 11px; color: var(--text-muted); }
         .book-badge-part {
             position: absolute;
             top: 8px;
@@ -360,7 +350,59 @@
             padding: 2px 7px;
             border-radius: 8px;
             font-weight: bold;
-            z-index: 5;
+        }
+        .book-details {
+            padding: 10px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .book-details-title { font-size: 13px; font-weight: bold; line-height: 1.3; margin-bottom: 4px; height: 35px; overflow: hidden; }
+        .book-details-author { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Home Page Direct Download & Read Actions */
+        .book-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: auto;
+            border-top: 1px solid var(--border);
+            padding-top: 8px;
+        }
+        .btn-card-read {
+            flex: 1;
+            background: var(--primary-green);
+            color: white;
+            padding: 7px 0;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .btn-card-read:hover { opacity: 0.9; }
+        .btn-card-dl {
+            padding: 7px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-dark);
+            transition: all 0.2s;
+        }
+        .btn-card-dl.downloaded {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
         }
 
         .tab-content { display: none; }
@@ -441,7 +483,6 @@
             margin: auto;
         }
 
-        /* Strict Justification & Clean Spacing */
         .page-block {
             background: var(--surface);
             padding: 25px 20px;
@@ -649,9 +690,10 @@
 </head>
 <body>
 
-<!-- Sync Badge -->
-<div class="sync-badge" id="syncBadge">
-    <i class="fas fa-sync-alt fa-spin"></i> Syncing...
+<!-- Toast Notification -->
+<div id="toastBox">
+    <i class="fas fa-info-circle" id="toastIcon"></i>
+    <span id="toastMsg">Message</span>
 </div>
 
 <!-- Initial Loader -->
@@ -661,7 +703,7 @@
     <div class="sub-status" id="loadSubStatus">Connecting to Database & IndexedDB...</div>
 </div>
 
-<!-- Dynamic Overlay Loader -->
+<!-- Action Overlay Loader -->
 <div class="loading-overlay" id="loadingOverlay">
     <div class="loader-spinner"></div>
     <div class="loader-text" id="loadingText">📖 Loading...</div>
@@ -738,7 +780,7 @@
         <span class="reader-title" id="readerTitle">Book Title</span>
         <div class="reader-header-actions">
             <button class="icon-btn" onclick="openTOC()" title="Table of Contents"><i class="fas fa-list-ul"></i></button>
-            <button class="icon-btn" onclick="downloadCurrentBook()" title="Batch Download Full Book (500/chunk)"><i class="fas fa-download"></i></button>
+            <button class="icon-btn" onclick="downloadCurrentBook()" title="Download Full Book"><i class="fas fa-download"></i></button>
             <button class="icon-btn" onclick="openSettings()" title="Settings"><i class="fas fa-sliders-h"></i></button>
         </div>
     </div>
@@ -757,7 +799,7 @@
     </div>
 </div>
 
-<!-- TOC MODAL (WITH BREADCRUMB & DIRECT JUMP) -->
+<!-- TOC MODAL -->
 <div class="modal-overlay" id="tocOverlay" onclick="closeTOC()"></div>
 <div class="modal-box" id="tocModal">
     <div class="modal-header">
@@ -765,16 +807,11 @@
         <button class="modal-close" onclick="closeTOC()"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body">
-        <!-- Direct Page Jump Box -->
         <div class="jump-container">
-            <input type="number" id="jumpPageInput" class="jump-input" placeholder="Enter page number to jump...">
+            <input type="number" id="jumpPageInput" class="jump-input" placeholder="Enter page number...">
             <button class="jump-btn" onclick="jumpToDirectPage()"><i class="fas fa-arrow-right"></i> Go</button>
         </div>
-        
-        <!-- Breadcrumb Navigation -->
         <div class="toc-breadcrumbs" id="tocBreadcrumb"></div>
-
-        <!-- Dynamic Hierarchy List -->
         <div class="list-wrapper" id="tocList"></div>
     </div>
 </div>
@@ -800,7 +837,7 @@
     </div>
 </div>
 
-<!-- SETTINGS MODAL (STORAGE ANALYTICS, THEMES, FONTS, SUPABASE KEYS) -->
+<!-- SETTINGS MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeSettings()"></div>
 <div class="modal-box" id="settingsModal">
     <div class="modal-header">
@@ -808,7 +845,6 @@
         <button class="modal-close" onclick="closeSettings()"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body">
-        <!-- 4 Themes -->
         <div class="settings-section">
             <div class="settings-label">🎨 Display Theme (4 Modes)</div>
             <div class="theme-grid">
@@ -819,7 +855,6 @@
             </div>
         </div>
 
-        <!-- Malayalam Fonts -->
         <div class="settings-section">
             <div class="settings-label">🔤 Malayalam Reader Font</div>
             <div class="settings-options">
@@ -831,7 +866,6 @@
             </div>
         </div>
 
-        <!-- Arabic Fonts -->
         <div class="settings-section">
             <div class="settings-label">🔤 Arabic Reader Font</div>
             <div class="settings-options">
@@ -842,7 +876,6 @@
             </div>
         </div>
 
-        <!-- English Fonts -->
         <div class="settings-section">
             <div class="settings-label">🔤 English Reader Font</div>
             <div class="settings-options">
@@ -851,7 +884,6 @@
             </div>
         </div>
 
-        <!-- Reader Controls -->
         <div class="settings-section">
             <div class="settings-label">📖 Typography & Alignment</div>
             <div class="setting-row">
@@ -876,7 +908,6 @@
             </div>
         </div>
 
-        <!-- Storage Analytics & Monitor -->
         <div class="settings-section">
             <div class="settings-label">💾 IndexedDB Storage Monitor</div>
             <div class="storage-card">
@@ -898,7 +929,6 @@
             </button>
         </div>
 
-        <!-- Supabase Credentials Config -->
         <div class="settings-section">
             <div class="settings-label">🔑 Supabase API Credentials</div>
             <input type="text" id="cfgSupUrl" placeholder="Supabase Project URL" style="width:100%; padding:8px 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:12px; margin-bottom:6px;">
@@ -912,7 +942,7 @@
 
 <script>
     // ================================================================
-    // DEFAULT CONFIG & STANDALONE FALLBACK MASTER DATA
+    // CONFIG & FALLBACK DATA
     // ================================================================
     const DEFAULT_SUPABASE = {
         URL: 'https://axjeqkeocbfemojomfjm.supabase.co',
@@ -981,7 +1011,7 @@
     };
 
     // ================================================================
-    // APPLICATION STATE
+    // STATE VARIABLES
     // ================================================================
     let supabaseClient = null;
     let allBooks = [];
@@ -990,16 +1020,34 @@
     let currentFontSize = 18;
     let isSyncing = false;
     let isDownloading = false;
+    let toastTimeout = null;
 
-    // TOC Tree and Breadcrumbs State
     let tocTree = [];
     let tocHistory = [];
+
+    // ================================================================
+    // TOAST NOTIFICATION UTILITY
+    // ================================================================
+    function showToast(msg, icon = 'fa-info-circle') {
+        const box = document.getElementById('toastBox');
+        const text = document.getElementById('toastMsg');
+        const ico = document.getElementById('toastIcon');
+        
+        text.textContent = msg;
+        ico.className = `fas ${icon}`;
+        box.classList.add('show');
+
+        if (toastTimeout) clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+            box.classList.remove('show');
+        }, 3000);
+    }
 
     // ================================================================
     // INDEXEDDB ENGINE
     // ================================================================
     const IDB = {
-        dbName: "IslamicLibraryPro_v4",
+        dbName: "IslamicLibraryPro_v5",
         version: 1,
         db: null,
         init() {
@@ -1084,9 +1132,6 @@
         }
     };
 
-    // ================================================================
-    // TIMEOUT WRAPPER FOR NETWORK PROMISES
-    // ================================================================
     function promiseWithTimeout(promise, ms = 4000) {
         return new Promise((resolve, reject) => {
             const timer = setTimeout(() => reject(new Error("Network / Supabase Timeout")), ms);
@@ -1097,13 +1142,12 @@
     }
 
     // ================================================================
-    // APP INITIALIZATION
+    // INITIALIZE APPLICATION
     // ================================================================
     async function initApp() {
         try {
             await IDB.init();
 
-            // Load Saved Supabase Credentials or Fallback
             const supUrl = localStorage.getItem('cfg_sup_url') || DEFAULT_SUPABASE.URL;
             const supKey = localStorage.getItem('cfg_sup_key') || DEFAULT_SUPABASE.KEY;
 
@@ -1114,7 +1158,6 @@
                 supabaseClient = window.supabase.createClient(supUrl, supKey);
             }
 
-            // Load IndexedDB Catalog
             let catalog = await IDB.getCatalog();
 
             if (!catalog || catalog.length === 0) {
@@ -1128,7 +1171,6 @@
             allBooks = catalog;
             await refreshBookStatus();
 
-            // Silent Sync
             if (supabaseClient && navigator.onLine) {
                 syncWithServer(true);
             }
@@ -1160,7 +1202,7 @@
         const url = document.getElementById('cfgSupUrl').value.trim();
         const key = document.getElementById('cfgSupKey').value.trim();
         if (!url || !key) {
-            alert('Please enter both Supabase URL and Key!');
+            showToast('Please enter both URL and Key!', 'fa-exclamation-triangle');
             return;
         }
         localStorage.setItem('cfg_sup_url', url);
@@ -1170,15 +1212,13 @@
     }
 
     // ================================================================
-    // SUPABASE SYNC
+    // SUPABASE CATALOG SYNC
     // ================================================================
     async function syncWithServer(silent = false) {
         if (isSyncing || !supabaseClient) return;
         isSyncing = true;
 
         if (!silent) showLoading('🔄 Syncing catalog from Supabase...');
-        const syncBadge = document.getElementById('syncBadge');
-        syncBadge.classList.add('show');
 
         try {
             const query = supabaseClient.from('master_catalog').select('*').limit(200);
@@ -1200,15 +1240,161 @@
                 await IDB.saveCatalog(allBooks);
                 await refreshBookStatus();
 
-                if (!silent) alert('✅ Successfully synced with Supabase catalog!');
+                if (!silent) showToast('✅ Catalog Synced Successfully!', 'fa-check-circle');
             }
         } catch (err) {
-            console.warn('Sync failed, working in offline mode:', err);
-            if (!silent) alert('⚠️ Supabase connection failed: ' + err.message);
+            console.warn('Sync failed, offline mode:', err);
+            if (!silent) showToast('⚠️ Supabase connection failed: ' + err.message, 'fa-exclamation-triangle');
         } finally {
             isSyncing = false;
-            syncBadge.classList.remove('show');
             if (!silent) hideLoading();
+        }
+    }
+
+    // ================================================================
+    // HOME BOOK CARD RENDERING WITH DIRECT BUTTONS
+    // ================================================================
+    function renderBooks(books) {
+        const grid = document.getElementById('bookGrid');
+        document.getElementById('bookCount').textContent = books.length;
+
+        if (!books || books.length === 0) {
+            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:30px; color:var(--text-muted);">No books available</div>';
+            return;
+        }
+
+        grid.innerHTML = books.map(b => {
+            const bg = b.cover_url ? `background-image: url('${b.cover_url}');` : `background: var(--primary-green);`;
+            const isDl = b.downloaded;
+
+            return `
+            <div class="book-card">
+                <div class="book-card-cover" style="${bg}" onclick="openBook('${b.id}')">
+                    <span class="book-badge-part">${b.parts || 1} Parts</span>
+                </div>
+                <div class="book-details">
+                    <div class="book-details-title" dir="rtl" onclick="openBook('${b.id}')">${b.title_ar || b.title_ml}</div>
+                    <div class="book-details-author">${b.author || ''}</div>
+                    
+                    <div class="book-actions">
+                        <button class="btn-card-read" onclick="openBook('${b.id}')">
+                            <i class="fas fa-book-open"></i> വായിക്കുക
+                        </button>
+                        <button class="btn-card-dl ${isDl ? 'downloaded' : ''}" 
+                                id="btn-dl-${b.id}"
+                                onclick="downloadBookById('${b.id}')" 
+                                title="${isDl ? 'Downloaded Offline' : 'Download Full Book'}">
+                            <i class="fas ${isDl ? 'fa-check-circle' : 'fa-download'}"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `}).join('');
+    }
+
+    // ================================================================
+    // 500-PAGE BATCH DOWNLOAD ENGINE (HOME & READER)
+    // ================================================================
+    async function downloadBookById(bookId) {
+        if (isDownloading) {
+            showToast('A download is already running...', 'fa-hourglass-half');
+            return;
+        }
+
+        const book = allBooks.find(b => String(b.id) === String(bookId));
+        if (!book) return;
+
+        if (book.downloaded && book.total_pages > 0) {
+            showToast(`✅ "${book.title_ml || 'Book'}" already saved offline!`, 'fa-check');
+            return;
+        }
+
+        if (!supabaseClient || !navigator.onLine) {
+            showToast('📴 Internet connection required to download.', 'fa-wifi');
+            return;
+        }
+
+        isDownloading = true;
+        showLoading(`📥 Initializing Download: ${book.title_ml || 'Book'}...`);
+
+        try {
+            const tableName = `${bookId}_contents`;
+            const BATCH_SIZE = 500;
+            let allData = [];
+            let pageIndex = 0;
+            let hasMore = true;
+            let totalCount = 0;
+
+            try {
+                const { count } = await supabaseClient.from(tableName).select('*', { count: 'exact', head: true });
+                totalCount = count || 0;
+            } catch(e) {}
+
+            while (hasMore) {
+                const from = pageIndex * BATCH_SIZE;
+                const to = from + BATCH_SIZE - 1;
+
+                const query = supabaseClient.from(tableName).select('*').order('ID', { ascending: true }).range(from, to);
+                const { data, error } = await promiseWithTimeout(query, 15000);
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    const parsed = data.map(item => ({
+                        id: item.ID,
+                        sequence: item.ID,
+                        part: item['Part Number'] || item.part || 1,
+                        page: item['Page Number'] || item.page || 1,
+                        Arabic: item['Arabic Text'] || item.arabic || '',
+                        Malayalam: item['Malayalam Text'] || item.malayalam || '',
+                        English: item['English Text'] || item.english || ''
+                    }));
+
+                    allData = allData.concat(parsed);
+                    pageIndex++;
+
+                    const progress = totalCount > 0 ? Math.min(100, Math.round((allData.length / totalCount) * 100)) : 95;
+                    showLoading(`📥 Batch ${pageIndex}: Loaded ${allData.length} / ${totalCount || allData.length} pages (${progress}%)...`);
+
+                    // Yield execution to browser event loop to prevent UI hanging
+                    await new Promise(r => setTimeout(r, 20));
+
+                    if (data.length < BATCH_SIZE) hasMore = false;
+                } else {
+                    hasMore = false;
+                }
+            }
+
+            // Save in IndexedDB
+            await IDB.saveBook(bookId, allData);
+            book.downloaded = true;
+            book.total_pages = allData.length;
+
+            if (currentBookId === String(bookId)) {
+                currentPages = allData;
+                renderAllPages();
+                buildDynamicTOC();
+            }
+
+            await refreshBookStatus();
+            
+            // Hide loading FIRST before showing toast
+            hideLoading();
+            showToast(`✅ "${book.title_ml || 'Book'}" (${allData.length} pages) downloaded offline!`, 'fa-check-circle');
+
+        } catch(err) {
+            console.error('Download error:', err);
+            hideLoading();
+            showToast('❌ Download failed: ' + err.message, 'fa-exclamation-circle');
+        } finally {
+            isDownloading = false;
+            hideLoading();
+        }
+    }
+
+    function downloadCurrentBook() {
+        if (currentBookId) {
+            downloadBookById(currentBookId);
         }
     }
 
@@ -1250,7 +1436,7 @@
 
             if (!pages || pages.length === 0) {
                 hideLoading();
-                alert('📭 Book content not found. Please click Download.');
+                showToast('📭 Book content not cached. Please click download.', 'fa-download');
                 return;
             }
 
@@ -1265,7 +1451,7 @@
             }
 
         } catch(err) {
-            alert('❌ Error: ' + err.message);
+            showToast('❌ Error opening book: ' + err.message, 'fa-exclamation-triangle');
         } finally {
             hideLoading();
         }
@@ -1306,91 +1492,6 @@
     });
 
     // ================================================================
-    // 500-PAGE BATCH DOWNLOAD ENGINE
-    // ================================================================
-    async function downloadCurrentBook() {
-        if (!currentBookId) return;
-        if (isDownloading) {
-            alert('A download is already in progress!');
-            return;
-        }
-
-        const book = allBooks.find(b => String(b.id) === currentBookId);
-        if (!book) return;
-
-        if (!supabaseClient || !navigator.onLine) {
-            alert('📴 Internet connection required to download.');
-            return;
-        }
-
-        isDownloading = true;
-        showLoading(`📥 Initializing Download for ${book.title_ml || 'Book'}...`);
-
-        try {
-            const tableName = `${currentBookId}_contents`;
-            const BATCH_SIZE = 500;
-            let allData = [];
-            let pageIndex = 0;
-            let hasMore = true;
-            let totalCount = 0;
-
-            try {
-                const { count } = await supabaseClient.from(tableName).select('*', { count: 'exact', head: true });
-                totalCount = count || 0;
-            } catch(e) {}
-
-            while (hasMore) {
-                const from = pageIndex * BATCH_SIZE;
-                const to = from + BATCH_SIZE - 1;
-
-                const query = supabaseClient.from(tableName).select('*').order('ID', { ascending: true }).range(from, to);
-                const { data, error } = await promiseWithTimeout(query, 15000);
-
-                if (error) throw error;
-
-                if (data && data.length > 0) {
-                    const parsed = data.map(item => ({
-                        id: item.ID,
-                        sequence: item.ID,
-                        part: item['Part Number'] || item.part || 1,
-                        page: item['Page Number'] || item.page || 1,
-                        Arabic: item['Arabic Text'] || item.arabic || '',
-                        Malayalam: item['Malayalam Text'] || item.malayalam || '',
-                        English: item['English Text'] || item.english || ''
-                    }));
-
-                    allData = allData.concat(parsed);
-                    pageIndex++;
-
-                    const progress = totalCount > 0 ? Math.min(100, Math.round((allData.length / totalCount) * 100)) : 95;
-                    showLoading(`📥 Batch ${pageIndex}: Downloaded ${allData.length} / ${totalCount || allData.length} pages (${progress}%)...`);
-
-                    if (data.length < BATCH_SIZE) hasMore = false;
-                } else {
-                    hasMore = false;
-                }
-            }
-
-            // Save to IndexedDB
-            await IDB.saveBook(currentBookId, allData);
-            book.downloaded = true;
-            book.total_pages = allData.length;
-            currentPages = allData;
-
-            await refreshBookStatus();
-            renderAllPages();
-            buildDynamicTOC();
-            alert(`✅ Download Complete! Stored ${allData.length} pages offline in IndexedDB.`);
-
-        } catch(err) {
-            alert('❌ Download failed: ' + err.message);
-        } finally {
-            isDownloading = false;
-            hideLoading();
-        }
-    }
-
-    // ================================================================
     // DYNAMIC HEADING PARSER (H1..H4) & BREADCRUMB TOC
     // ================================================================
     function buildDynamicTOC() {
@@ -1404,7 +1505,6 @@
             const arText = page.Arabic || '';
             const mlText = page.Malayalam || '';
 
-            // Group by Part
             if (!currentPart || currentPart.partNumber !== partNum) {
                 currentPart = {
                     title: `📖 ഭാഗം ${partNum}`,
@@ -1418,7 +1518,6 @@
                 currentH2 = null;
             }
 
-            // Regex search for H1, H2, H3, H4 in Arabic or Malayalam text
             const h1Match = arText.match(/<h1[^>]*>(.*?)<\/h1>/i) || mlText.match(/<h1[^>]*>(.*?)<\/h1>/i);
             const h2Match = arText.match(/<h2[^>]*>(.*?)<\/h2>/i) || mlText.match(/<h2[^>]*>(.*?)<\/h2>/i);
             const h3Match = arText.match(/<h3[^>]*>(.*?)<\/h3>/i) || mlText.match(/<h3[^>]*>(.*?)<\/h3>/i);
@@ -1440,7 +1539,6 @@
                 else if (currentH1) currentH1.children.push(h3Node);
                 else currentPart.children.push(h3Node);
             } else if (index === 0 || index % 5 === 0) {
-                // Fallback page item
                 const pageNode = {
                     title: `📄 പേജ് ${page.page || index + 1}`,
                     type: 'page',
@@ -1456,7 +1554,7 @@
 
     function openTOC() {
         if (!currentPages || currentPages.length === 0) {
-            alert('No book content loaded.');
+            showToast('No book content loaded.', 'fa-info-circle');
             return;
         }
         buildDynamicTOC();
@@ -1475,13 +1573,11 @@
     function renderTOCView() {
         const currentLevel = tocHistory[tocHistory.length - 1];
         
-        // Render Breadcrumbs
         const bcEl = document.getElementById('tocBreadcrumb');
         bcEl.innerHTML = tocHistory.map((item, idx) => 
             `<span class="toc-bc-item" onclick="navigateTOCBreadcrumb(${idx})">${item.title}</span>`
         ).join(' <i class="fas fa-chevron-right" style="font-size:10px;"></i> ');
 
-        // Render List
         const listEl = document.getElementById('tocList');
         listEl.innerHTML = '';
 
@@ -1531,11 +1627,10 @@
     function jumpToDirectPage() {
         const val = parseInt(document.getElementById('jumpPageInput').value);
         if (isNaN(val) || val <= 0) {
-            alert('Please enter a valid page number.');
+            showToast('Please enter a valid page number.', 'fa-exclamation-triangle');
             return;
         }
 
-        // Find index matching page number
         let targetIdx = currentPages.findIndex(p => parseInt(p.page) === val);
         if (targetIdx === -1) {
             targetIdx = Math.min(val - 1, currentPages.length - 1);
@@ -1557,7 +1652,7 @@
             if (pages && pages.length > 0) {
                 downloadedBooksCount++;
                 totalPages += pages.length;
-                totalBytes += new Blob([JSON.stringify(pages)]).size;
+                totalBytes += (JSON.stringify(pages).length * 2); // Fast approximate memory calculation
             }
         }
 
@@ -1578,7 +1673,7 @@
         allBooks = FALLBACK_BOOKS;
         await refreshBookStatus();
         closeSettings();
-        alert('✅ Local IndexedDB storage successfully reset.');
+        showToast('✅ Local IndexedDB storage reset.', 'fa-trash');
     }
 
     // ================================================================
@@ -1612,7 +1707,7 @@
         const ml = document.getElementById('quoteMl').textContent;
         const source = document.getElementById('quoteSource').innerText;
         const text = `${ar}\n\n${ml}\n\n— ${source}`;
-        navigator.clipboard.writeText(text).then(() => alert('📋 Copied Quote text to Clipboard!'));
+        navigator.clipboard.writeText(text).then(() => showToast('📋 Copied Quote text to Clipboard!', 'fa-copy'));
     }
 
     function shareQuoteAsImage() {
@@ -1677,31 +1772,8 @@
     }
 
     // ================================================================
-    // HOME VIEW RENDERING & FILTERING
+    // CATEGORIES & AUTHORS RENDER
     // ================================================================
-    function renderBooks(books) {
-        const grid = document.getElementById('bookGrid');
-        document.getElementById('bookCount').textContent = books.length;
-
-        if (!books || books.length === 0) {
-            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:30px; color:var(--text-muted);">No books available</div>';
-            return;
-        }
-
-        grid.innerHTML = books.map(b => {
-            const bg = b.cover_url ? `background-image: url('${b.cover_url}');` : `background: var(--primary-green);`;
-            return `
-            <div class="book-card" onclick="openBook('${b.id}')">
-                <span class="book-badge-part">${b.parts || 1} Parts</span>
-                <div class="book-card-cover" style="${bg}"></div>
-                <div class="book-details">
-                    <div class="book-details-title" dir="rtl">${b.title_ar || b.title_ml}</div>
-                    <div class="book-details-author">${b.author || ''}</div>
-                </div>
-            </div>
-        `}).join('');
-    }
-
     function renderCategories(books) {
         const categories = {};
         books.forEach(b => {
@@ -1909,7 +1981,7 @@
     }
 
     // ================================================================
-    // LOAD SAVED USER PREFERENCES
+    // INITIALIZATION LISTENER
     // ================================================================
     document.addEventListener('DOMContentLoaded', () => {
         const savedTheme = localStorage.getItem('pref_theme') || 'light';
