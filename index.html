@@ -4,27 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#1b4d3e">
-    <title>📚 Islamic Digital Library Pro</title>
+    <title>📚 Islamic Digital Library Pro - Full Stack Edition</title>
 
-    <!-- Supabase Credentials -->
-    <script>
-        const SUPABASE_CONFIG = {
-            URL: 'https://axjeqkeocbfemojomfjm.supabase.co',
-            KEY: 'sb_publishable_JgdXpn2s46NfLu0wNHU_9w_Cj9ewUKE'
-        };
-    </script>
-
-    <!-- External Libraries -->
+    <!-- Supabase JS Client (v2) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     
-    <!-- Google Fonts -->
+    <!-- Google Fonts Integration -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&family=Noto+Sans+Malayalam:wght@400;500;700&family=Noto+Sans:wght@400;500;700&family=Noto+Serif+Malayalam:wght@400;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,700;1,8..60,400&family=Inter:wght@400;500;600;700&family=Manjari:wght@400;700&family=Chilanka&family=Gayathri&family=Scheherazade+New:wght@400;700&family=Lateef&display=swap" rel="stylesheet">
 
     <style>
-        /* ============ ROOT VARIABLES ============ */
+        /* ============ ROOT & THEME DEFINITIONS ============ */
         :root {
             --primary-green: #1b4d3e;
             --primary-light: #e8f3ee;
@@ -100,7 +94,7 @@
 
         button, input, select { font-family: inherit; border: none; outline: none; background: transparent; color: inherit; }
 
-        /* ===== SYNC BADGE & LOADER ===== */
+        /* ===== SYNC BADGE & LOADERS ===== */
         .sync-badge {
             position: fixed;
             top: 15px;
@@ -525,7 +519,7 @@
             bottom: -100%;
             left: 0;
             width: 100%;
-            max-height: 80vh;
+            max-height: 85vh;
             background: var(--surface);
             border-radius: 20px 20px 0 0;
             z-index: 3001;
@@ -548,6 +542,47 @@
             padding: 20px;
             overflow-y: auto;
             flex-grow: 1;
+        }
+
+        /* Direct Jump Bar in TOC */
+        .jump-container {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            background: var(--bg);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        .jump-input {
+            flex-grow: 1;
+            font-size: 13px;
+        }
+        .jump-btn {
+            background: var(--primary-green);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* TOC Breadcrumbs */
+        .toc-breadcrumbs {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .toc-bc-item {
+            color: var(--primary-green);
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: underline;
         }
 
         /* Settings Layout */
@@ -587,6 +622,23 @@
         }
         .btn-opt.active { background: var(--primary-green); color: white; border-color: var(--primary-green); }
 
+        /* Storage Analytics Card */
+        .storage-card {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .storage-stat {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+        .storage-stat-val { font-size: 14px; font-weight: bold; color: var(--primary-green); }
+        .storage-stat-lbl { font-size: 10px; color: var(--text-muted); margin-top: 3px; }
+
         /* Quote Box */
         .quote-text { margin-bottom: 12px; font-size: 14px; line-height: 1.6; }
         .quote-text.ar { font-family: var(--reader-font-ar); direction: rtl; font-weight: bold; }
@@ -606,7 +658,7 @@
 <div id="loader">
     <div class="spinner"></div>
     <div class="status" id="loadStatus">📚 Islamic Digital Library Pro</div>
-    <div class="sub-status" id="loadSubStatus">Connecting & Loading Catalog...</div>
+    <div class="sub-status" id="loadSubStatus">Connecting to Database & IndexedDB...</div>
 </div>
 
 <!-- Dynamic Overlay Loader -->
@@ -622,7 +674,7 @@
             <div class="home-title"><i class="fas fa-book-open"></i> Islamic Library Pro</div>
             <div class="actions">
                 <button class="action-btn" onclick="toggleSearch()" title="Search"><i class="fas fa-search"></i></button>
-                <button class="action-btn" onclick="syncWithServer()" title="Sync with Server"><i class="fas fa-cloud-download-alt"></i></button>
+                <button class="action-btn" onclick="syncWithServer()" title="Sync with Supabase"><i class="fas fa-cloud-download-alt"></i></button>
                 <button class="action-btn" onclick="openSettings()" title="Settings"><i class="fas fa-sliders-h"></i></button>
             </div>
         </div>
@@ -686,7 +738,7 @@
         <span class="reader-title" id="readerTitle">Book Title</span>
         <div class="reader-header-actions">
             <button class="icon-btn" onclick="openTOC()" title="Table of Contents"><i class="fas fa-list-ul"></i></button>
-            <button class="icon-btn" onclick="downloadCurrentBook()" title="Download Full Book"><i class="fas fa-download"></i></button>
+            <button class="icon-btn" onclick="downloadCurrentBook()" title="Batch Download Full Book (500/chunk)"><i class="fas fa-download"></i></button>
             <button class="icon-btn" onclick="openSettings()" title="Settings"><i class="fas fa-sliders-h"></i></button>
         </div>
     </div>
@@ -705,14 +757,26 @@
     </div>
 </div>
 
-<!-- TOC MODAL -->
+<!-- TOC MODAL (WITH BREADCRUMB & DIRECT JUMP) -->
 <div class="modal-overlay" id="tocOverlay" onclick="closeTOC()"></div>
 <div class="modal-box" id="tocModal">
     <div class="modal-header">
-        <h3>📑 Table of Contents</h3>
+        <h3>📑 Table of Contents & Index</h3>
         <button class="modal-close" onclick="closeTOC()"><i class="fas fa-times"></i></button>
     </div>
-    <div class="modal-body" id="tocList"></div>
+    <div class="modal-body">
+        <!-- Direct Page Jump Box -->
+        <div class="jump-container">
+            <input type="number" id="jumpPageInput" class="jump-input" placeholder="Enter page number to jump...">
+            <button class="jump-btn" onclick="jumpToDirectPage()"><i class="fas fa-arrow-right"></i> Go</button>
+        </div>
+        
+        <!-- Breadcrumb Navigation -->
+        <div class="toc-breadcrumbs" id="tocBreadcrumb"></div>
+
+        <!-- Dynamic Hierarchy List -->
+        <div class="list-wrapper" id="tocList"></div>
+    </div>
 </div>
 
 <!-- QUOTE MODAL -->
@@ -722,103 +786,125 @@
         <h3>📝 Quote / Citation</h3>
         <button class="modal-close" onclick="closeQuote()"><i class="fas fa-times"></i></button>
     </div>
-    <div class="modal-body" id="quoteBody">
+    <div class="modal-body">
         <div class="quote-text ar" id="quoteAr"></div>
         <div class="quote-text ml" id="quoteMl"></div>
         <div class="quote-text en" id="quoteEn"></div>
         <div class="quote-source" id="quoteSource"></div>
         <button onclick="copyQuote()" style="width:100%; margin-top:15px; padding:12px; background:var(--primary-green); color:white; border-radius:8px; font-weight:bold; cursor:pointer;">
-            <i class="fas fa-copy"></i> Copy Quote
+            <i class="fas fa-copy"></i> Copy Quote Text
         </button>
         <button onclick="shareQuoteAsImage()" style="width:100%; margin-top:10px; padding:12px; background:#1a73e8; color:white; border-radius:8px; font-weight:bold; cursor:pointer;">
-            <i class="fas fa-image"></i> Share as Image
+            <i class="fas fa-image"></i> Share as Image Card
         </button>
     </div>
 </div>
 
-<!-- SETTINGS MODAL -->
+<!-- SETTINGS MODAL (STORAGE ANALYTICS, THEMES, FONTS, SUPABASE KEYS) -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeSettings()"></div>
 <div class="modal-box" id="settingsModal">
     <div class="modal-header">
-        <h3>⚙️ Settings</h3>
+        <h3>⚙️ Settings & Customization</h3>
         <button class="modal-close" onclick="closeSettings()"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body">
-        <!-- Theme -->
+        <!-- 4 Themes -->
         <div class="settings-section">
-            <div class="settings-label">🎨 Theme</div>
+            <div class="settings-label">🎨 Display Theme (4 Modes)</div>
             <div class="theme-grid">
-                <div class="theme-btn active" data-theme="light" onclick="setTheme('light')">☀️ Light</div>
-                <div class="theme-btn" data-theme="dark" onclick="setTheme('dark')">🌙 Dark</div>
-                <div class="theme-btn" data-theme="amoled" onclick="setTheme('amoled')">⚫ AMOLED</div>
-                <div class="theme-btn" data-theme="sepia" onclick="setTheme('sepia')">📜 Sepia</div>
+                <div class="theme-btn active" id="btn-theme-light" onclick="setTheme('light')">☀️ Light</div>
+                <div class="theme-btn" id="btn-theme-dark" onclick="setTheme('dark')">🌙 Dark</div>
+                <div class="theme-btn" id="btn-theme-amoled" onclick="setTheme('amoled')">⚫ AMOLED</div>
+                <div class="theme-btn" id="btn-theme-sepia" onclick="setTheme('sepia')">📜 Sepia</div>
             </div>
         </div>
 
-        <!-- Sync Settings -->
+        <!-- Malayalam Fonts -->
         <div class="settings-section">
-            <div class="settings-label">🔄 Server Sync</div>
-            <button onclick="syncWithServer()" style="width:100%; padding:10px; background:var(--primary-green); color:white; border-radius:6px; font-weight:bold; cursor:pointer;">
-                <i class="fas fa-cloud-download-alt"></i> Sync Now with Supabase
-            </button>
-        </div>
-
-        <!-- Font Controls -->
-        <div class="settings-section">
-            <div class="settings-label">🔤 Malayalam Font</div>
+            <div class="settings-label">🔤 Malayalam Reader Font</div>
             <div class="settings-options">
                 <button class="btn-opt active" onclick="setReaderFont('ml', 'Noto Serif', this)">Noto Serif</button>
                 <button class="btn-opt" onclick="setReaderFont('ml', 'Noto Sans', this)">Noto Sans</button>
                 <button class="btn-opt" onclick="setReaderFont('ml', 'Manjari', this)">Manjari</button>
+                <button class="btn-opt" onclick="setReaderFont('ml', 'Chilanka', this)">Chilanka</button>
+                <button class="btn-opt" onclick="setReaderFont('ml', 'Gayathri', this)">Gayathri</button>
             </div>
         </div>
 
+        <!-- Arabic Fonts -->
         <div class="settings-section">
-            <div class="settings-label">🔤 Arabic Font</div>
+            <div class="settings-label">🔤 Arabic Reader Font</div>
             <div class="settings-options">
                 <button class="btn-opt active" onclick="setReaderFont('ar', 'Amiri', this)">Amiri</button>
                 <button class="btn-opt" onclick="setReaderFont('ar', 'Noto Naskh', this)">Noto Naskh</button>
+                <button class="btn-opt" onclick="setReaderFont('ar', 'Scheherazade', this)">Scheherazade</button>
+                <button class="btn-opt" onclick="setReaderFont('ar', 'Lateef', this)">Lateef</button>
             </div>
         </div>
 
-        <!-- Reader Display Options -->
+        <!-- English Fonts -->
         <div class="settings-section">
-            <div class="settings-label">📖 Typography & Languages</div>
+            <div class="settings-label">🔤 English Reader Font</div>
+            <div class="settings-options">
+                <button class="btn-opt active" onclick="setReaderFont('en', 'Source Serif', this)">Source Serif 4</button>
+                <button class="btn-opt" onclick="setReaderFont('en', 'Noto Sans', this)">Noto Sans</button>
+            </div>
+        </div>
+
+        <!-- Reader Controls -->
+        <div class="settings-section">
+            <div class="settings-label">📖 Typography & Alignment</div>
             <div class="setting-row">
                 <span>Font Size</span>
-                <input type="range" min="14" max="30" value="18" oninput="updateFontSize(this.value)">
+                <input type="range" id="optFontSize" min="14" max="32" value="18" oninput="updateFontSize(this.value)">
             </div>
             <div class="setting-row">
                 <span>Line Height</span>
-                <input type="range" min="1.5" max="2.4" step="0.1" value="1.85" oninput="updateLineHeight(this.value)">
+                <input type="range" id="optLineHeight" min="1.5" max="2.6" step="0.1" value="1.85" oninput="updateLineHeight(this.value)">
             </div>
             <div class="setting-row">
-                <span>Show Arabic</span>
+                <span>Show Arabic Text</span>
                 <input type="checkbox" id="chkShowAr" checked onchange="toggleLanguage('ar', this.checked)">
             </div>
             <div class="setting-row">
-                <span>Show Malayalam</span>
+                <span>Show Malayalam Text</span>
                 <input type="checkbox" id="chkShowMl" checked onchange="toggleLanguage('ml', this.checked)">
             </div>
             <div class="setting-row">
-                <span>Show English</span>
+                <span>Show English Text</span>
                 <input type="checkbox" id="chkShowEn" checked onchange="toggleLanguage('en', this.checked)">
             </div>
         </div>
 
-        <!-- Storage Manager -->
+        <!-- Storage Analytics & Monitor -->
         <div class="settings-section">
-            <div class="settings-label">💾 Storage Status</div>
-            <div style="display:flex; gap:10px; margin-bottom:10px;">
-                <span style="font-size:12px; background:var(--bg); padding:6px 12px; border-radius:6px;">
-                    <i class="fas fa-book"></i> Books: <strong id="storageBooks">0</strong>
-                </span>
-                <span style="font-size:12px; background:var(--bg); padding:6px 12px; border-radius:6px;">
-                    <i class="fas fa-file-alt"></i> Pages: <strong id="storagePages">0</strong>
-                </span>
+            <div class="settings-label">💾 IndexedDB Storage Monitor</div>
+            <div class="storage-card">
+                <div class="storage-stat">
+                    <div class="storage-stat-val" id="statBooks">0</div>
+                    <div class="storage-stat-lbl">Books Offline</div>
+                </div>
+                <div class="storage-stat">
+                    <div class="storage-stat-val" id="statPages">0</div>
+                    <div class="storage-stat-lbl">Total Pages</div>
+                </div>
+                <div class="storage-stat">
+                    <div class="storage-stat-val" id="statSize">0.0 MB</div>
+                    <div class="storage-stat-lbl">Memory Used</div>
+                </div>
             </div>
             <button onclick="clearAllData()" style="width:100%; padding:10px; background:#dc3545; color:white; border-radius:6px; font-weight:bold; cursor:pointer;">
-                🗑 Clear All Offline Data
+                🗑 Clear All Offline Stored Data
+            </button>
+        </div>
+
+        <!-- Supabase Credentials Config -->
+        <div class="settings-section">
+            <div class="settings-label">🔑 Supabase API Credentials</div>
+            <input type="text" id="cfgSupUrl" placeholder="Supabase Project URL" style="width:100%; padding:8px 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:12px; margin-bottom:6px;">
+            <input type="password" id="cfgSupKey" placeholder="Supabase Anon/Public Key" style="width:100%; padding:8px 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:12px; margin-bottom:8px;">
+            <button onclick="saveSupabaseConfig()" style="width:100%; padding:10px; background:var(--primary-green); color:white; border-radius:6px; font-weight:bold; cursor:pointer;">
+                💾 Save Credentials & Re-Sync
             </button>
         </div>
     </div>
@@ -826,8 +912,13 @@
 
 <script>
     // ================================================================
-    // FAIL-SAFE EMBEDDED MASTER DATA
+    // DEFAULT CONFIG & STANDALONE FALLBACK MASTER DATA
     // ================================================================
+    const DEFAULT_SUPABASE = {
+        URL: 'https://axjeqkeocbfemojomfjm.supabase.co',
+        KEY: 'sb_publishable_JgdXpn2s46NfLu0wNHU_9w_Cj9ewUKE'
+    };
+
     const FALLBACK_BOOKS = [
         {
             id: '1',
@@ -862,35 +953,35 @@
         '4': [
             {
                 id: 1, sequence: 1, part: 1, page: 1,
-                Arabic: "علامات الترقيم في الكتابة العربية تيسر فهم المعنى وتوضح المقاصد.",
-                Malayalam: "അറബി എഴുത്തിലെ വിരാമചിഹ്നങ്ങൾ ആശയം എളുപ്പത്തിൽ മനസ്സിലാക്കാനും ഉദ്ദേശ്യങ്ങൾ വ്യക്തമാക്കാനും സഹായിക്കുന്നു.",
-                English: "Punctuation marks in Arabic writing facilitate understanding the meaning and clarify objectives."
+                Arabic: "<h1>مقدمة في علامات الترقيم</h1>علامات الترقيم في الكتابة العربية تيسر فهم المعنى وتوضح المقاصد الدقيقة للنصوص.",
+                Malayalam: "<h1>വിരാമചിഹ്നങ്ങളിലെ ആമുഖം</h1>അറബി എഴുത്തിലെ വിരാമചിഹ്നങ്ങൾ ആശയം എളുപ്പത്തിൽ മനസ്സിലാക്കാനും ഉദ്ദേശ്യങ്ങൾ വ്യക്തമാക്കാനും സഹായിക്കുന്നു.",
+                English: "<h1>Introduction to Punctuation</h1>Punctuation marks in Arabic writing facilitate understanding the meaning and clarify objectives."
             },
             {
                 id: 2, sequence: 2, part: 1, page: 2,
-                Arabic: "الفاصلة وتكون بين الجمل المعطوفة والتقسيمات في الكلام العربي.",
-                Malayalam: "കോമ (Comma) വാക്യങ്ങളെ പരസ്പരം ബന്ധിപ്പിക്കുമ്പോഴും സംസാരത്തിലെ വിഭജനങ്ങളിലുമാണ് ഉപയോഗിക്കുന്നത്.",
-                English: "The comma is placed between conjunct clauses and classifications."
+                Arabic: "<h2>باب الفاصلة</h2>الفاصلة وتكون بين الجمل المعطوفة والتقسيمات في سياق الكلام.",
+                Malayalam: "<h2>കോമയുടെ ഉപയോഗം</h2>കോമ (Comma) വാക്യങ്ങളെ പരസ്പരം ബന്ധിപ്പിക്കുമ്പോഴും സംസാരത്തിലെ വിഭജനങ്ങളിലുമാണ് ഉപയോഗിക്കുന്നത്.",
+                English: "<h2>Section on the Comma</h2>The comma is placed between conjunct clauses and classifications."
             }
         ],
         '5': [
             {
                 id: 1, sequence: 1, part: 1, page: 1,
-                Arabic: "بسم الله الرحمن الرحيم، الحمد لله وسلام على عباده الذين اصطفى.",
-                Malayalam: "പരമദയാലുവായ അല്ലാഹുവിന്റെ തിരുനാമത്തിൽ ആരംഭിക്കുന്നു. സർവ്വസ്തുതിയും അല്ലാഹുവിന്, അവന്റെ തെരഞ്ഞെടുക്കപ്പെട്ട ദാസന്മാരിൽ സമാധാനം ഉണ്ടാകട്ടെ.",
-                English: "In the name of Allah, the Most Gracious, the Most Merciful. Praise be to Allah and peace upon His chosen servants."
+                Arabic: "<h1>خطبة الكتاب</h1>بسم الله الرحمن الرحيم، الحمد لله وسلام على عباده الذين اصطفى.",
+                Malayalam: "<h1>ഗ്രന്ഥത്തിന്റെ പ്രാരംഭം</h1>പരമദയാലുവായ അല്ലാഹുവിന്റെ തിരുനാമത്തിൽ ആരംഭിക്കുന്നു. സർവ്വസ്തുതിയും അല്ലാഹുവിന്, അവന്റെ തെരഞ്ഞെടുക്കപ്പെട്ട ദാസന്മാരിൽ സമാധാനം ഉണ്ടാകട്ടെ.",
+                English: "<h1>Book Prologue</h1>In the name of Allah, the Most Gracious, the Most Merciful. Praise be to Allah and peace upon His chosen servants."
             },
             {
                 id: 2, sequence: 2, part: 1, page: 2,
-                Arabic: "هذا ذكر من وصف بالتدليس من الرواة والمحدثين في الأثر.",
-                Malayalam: "നിവേദകരിൽ നിന്നും ഹദീസ് പണ്ഡിതന്മാരിൽ നിന്നും തദ്‌ലീസ് (ഇരുട്ടടപ്പ്) നടത്തിയതായി വിശേഷിപ്പിക്കപ്പെട്ടവരുടെ വിവരണം ഇതിൽ അടങ്ങിയിരിക്കുന്നു.",
-                English: "This is a record of narrators and scholars who were attributed with obfuscation in narrations."
+                Arabic: "<h2>فصل في بيان التدليس</h2>هذا ذكر من وصف بالتدليس من الرواة والمحدثين في الأثر.",
+                Malayalam: "<h2>തദ്‌ലീസിനെക്കുറിച്ചുള്ള വിവരണം</h2>നിവേദകരിൽ നിന്നും ഹദീസ് പണ്ഡിതന്മാരിൽ നിന്നും തദ്‌ലീസ് (ഇരുട്ടടപ്പ്) നടത്തിയതായി വിശേഷിപ്പിക്കപ്പെട്ടവരുടെ വിവരണം ഇതിൽ അടങ്ങിയിരിക്കുന്നു.",
+                English: "<h2>Chapter on Obfuscation (Tadlees)</h2>This is a record of narrators and scholars who were attributed with obfuscation in narrations."
             }
         ]
     };
 
     // ================================================================
-    // APP STATE
+    // APPLICATION STATE
     // ================================================================
     let supabaseClient = null;
     let allBooks = [];
@@ -898,13 +989,17 @@
     let currentPages = [];
     let currentFontSize = 18;
     let isSyncing = false;
+    let isDownloading = false;
+
+    // TOC Tree and Breadcrumbs State
     let tocTree = [];
+    let tocHistory = [];
 
     // ================================================================
     // INDEXEDDB ENGINE
     // ================================================================
     const IDB = {
-        dbName: "IslamicLibraryPro_v3",
+        dbName: "IslamicLibraryPro_v4",
         version: 1,
         db: null,
         init() {
@@ -990,13 +1085,11 @@
     };
 
     // ================================================================
-    // TIMEOUT-PROTECTED SUPABASE PROMISE
+    // TIMEOUT WRAPPER FOR NETWORK PROMISES
     // ================================================================
-    function promiseWithTimeout(promise, ms = 3500) {
+    function promiseWithTimeout(promise, ms = 4000) {
         return new Promise((resolve, reject) => {
-            const timer = setTimeout(() => {
-                reject(new Error("Network / Supabase Timeout"));
-            }, ms);
+            const timer = setTimeout(() => reject(new Error("Network / Supabase Timeout")), ms);
             promise
                 .then(res => { clearTimeout(timer); resolve(res); })
                 .catch(err => { clearTimeout(timer); reject(err); });
@@ -1010,9 +1103,15 @@
         try {
             await IDB.init();
 
-            // Initialize Supabase Client
-            if (window.supabase && SUPABASE_CONFIG.URL && SUPABASE_CONFIG.KEY) {
-                supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.KEY);
+            // Load Saved Supabase Credentials or Fallback
+            const supUrl = localStorage.getItem('cfg_sup_url') || DEFAULT_SUPABASE.URL;
+            const supKey = localStorage.getItem('cfg_sup_key') || DEFAULT_SUPABASE.KEY;
+
+            document.getElementById('cfgSupUrl').value = supUrl;
+            document.getElementById('cfgSupKey').value = supKey;
+
+            if (window.supabase && supUrl && supKey) {
+                supabaseClient = window.supabase.createClient(supUrl, supKey);
             }
 
             // Load IndexedDB Catalog
@@ -1029,7 +1128,7 @@
             allBooks = catalog;
             await refreshBookStatus();
 
-            // Attempt Silent Background Sync
+            // Silent Sync
             if (supabaseClient && navigator.onLine) {
                 syncWithServer(true);
             }
@@ -1048,13 +1147,26 @@
         for (const book of allBooks) {
             const pages = await IDB.getBook(book.id);
             book.downloaded = !!(pages && pages.length > 0);
-            book.total_pages = book.downloaded ? pages.length : (book.total_pages || 1);
+            book.total_pages = book.downloaded ? pages.length : (book.parts || 1);
         }
         renderBooks(allBooks);
         renderCategories(allBooks);
         renderAuthors(allBooks);
         updateContinueReading();
-        updateStorageInfo();
+        updateStorageAnalytics();
+    }
+
+    function saveSupabaseConfig() {
+        const url = document.getElementById('cfgSupUrl').value.trim();
+        const key = document.getElementById('cfgSupKey').value.trim();
+        if (!url || !key) {
+            alert('Please enter both Supabase URL and Key!');
+            return;
+        }
+        localStorage.setItem('cfg_sup_url', url);
+        localStorage.setItem('cfg_sup_key', key);
+        supabaseClient = window.supabase.createClient(url, key);
+        syncWithServer(false);
     }
 
     // ================================================================
@@ -1064,18 +1176,13 @@
         if (isSyncing || !supabaseClient) return;
         isSyncing = true;
 
-        if (!silent) showLoading('🔄 Syncing with Supabase...');
+        if (!silent) showLoading('🔄 Syncing catalog from Supabase...');
         const syncBadge = document.getElementById('syncBadge');
         syncBadge.classList.add('show');
 
         try {
-            // Check 'master_catalog' or table with catalog
-            const queryPromise = supabaseClient
-                .from('master_catalog')
-                .select('*')
-                .limit(200);
-
-            const { data, error } = await promiseWithTimeout(queryPromise, 4000);
+            const query = supabaseClient.from('master_catalog').select('*').limit(200);
+            const { data, error } = await promiseWithTimeout(query, 5000);
 
             if (error) throw error;
 
@@ -1093,11 +1200,11 @@
                 await IDB.saveCatalog(allBooks);
                 await refreshBookStatus();
 
-                if (!silent) alert('✅ Successfully synced with Supabase!');
+                if (!silent) alert('✅ Successfully synced with Supabase catalog!');
             }
         } catch (err) {
-            console.warn('Sync failed, continuing offline:', err);
-            if (!silent) alert('⚠️ Supabase connection error: ' + err.message);
+            console.warn('Sync failed, working in offline mode:', err);
+            if (!silent) alert('⚠️ Supabase connection failed: ' + err.message);
         } finally {
             isSyncing = false;
             syncBadge.classList.remove('show');
@@ -1118,14 +1225,13 @@
         try {
             let pages = await IDB.getBook(currentBookId);
 
-            // Fetch from Supabase if not in IDB
             if (!pages || pages.length === 0) {
                 if (FALLBACK_PAGES[currentBookId]) {
                     pages = FALLBACK_PAGES[currentBookId];
                 } else if (supabaseClient && navigator.onLine) {
                     const tableName = `${currentBookId}_contents`;
-                    const query = supabaseClient.from(tableName).select('*').order('ID', { ascending: true }).limit(500);
-                    const { data, error } = await promiseWithTimeout(query, 5000);
+                    const query = supabaseClient.from(tableName).select('*').order('ID', { ascending: true }).range(0, 499);
+                    const { data, error } = await promiseWithTimeout(query, 6000);
 
                     if (!error && data && data.length > 0) {
                         pages = data.map(item => ({
@@ -1144,23 +1250,22 @@
 
             if (!pages || pages.length === 0) {
                 hideLoading();
-                alert('📭 Book content not found or empty.');
+                alert('📭 Book content not found. Please click Download.');
                 return;
             }
 
             currentPages = pages;
             renderAllPages();
-            buildTOC();
+            buildDynamicTOC();
             openReader();
 
-            // Restore Scroll Position
             const savedScroll = localStorage.getItem(`scroll_${currentBookId}`);
             if (savedScroll) {
                 setTimeout(() => { document.getElementById('readerContent').scrollTop = parseInt(savedScroll); }, 50);
             }
 
         } catch(err) {
-            alert('❌ Error opening book: ' + err.message);
+            alert('❌ Error: ' + err.message);
         } finally {
             hideLoading();
         }
@@ -1176,7 +1281,7 @@
             const en = page.English || page['English Text'] || '';
 
             html += `
-                <div class="page-block" id="page-block-${i}">
+                <div class="page-block" id="page-block-${i}" data-page-index="${i}">
                     <div class="page-meta">
                         <span>PAGE ${page.page || (i + 1)} • PART ${page.part || 1}</span>
                         <button onclick="quotePage(${i})" style="background:var(--primary-green); color:white; border-radius:12px; font-size:10px; padding:2px 8px; cursor:pointer; margin-left:10px;">
@@ -1194,7 +1299,6 @@
         applyLanguageDisplay();
     }
 
-    // Scroll Tracking
     document.getElementById('readerContent').addEventListener('scroll', () => {
         if (currentBookId) {
             localStorage.setItem(`scroll_${currentBookId}`, document.getElementById('readerContent').scrollTop);
@@ -1202,94 +1306,162 @@
     });
 
     // ================================================================
-    // DOWNLOAD FULL BOOK FOR OFFLINE
+    // 500-PAGE BATCH DOWNLOAD ENGINE
     // ================================================================
     async function downloadCurrentBook() {
         if (!currentBookId) return;
-        const book = allBooks.find(b => String(b.id) === currentBookId);
-        if (!book) return;
-
-        if (book.downloaded && book.total_pages > 0) {
-            alert('✅ Book already stored offline!');
+        if (isDownloading) {
+            alert('A download is already in progress!');
             return;
         }
+
+        const book = allBooks.find(b => String(b.id) === currentBookId);
+        if (!book) return;
 
         if (!supabaseClient || !navigator.onLine) {
             alert('📴 Internet connection required to download.');
             return;
         }
 
-        showLoading(`📥 Downloading ${book.title_ml || 'Book'}...`);
+        isDownloading = true;
+        showLoading(`📥 Initializing Download for ${book.title_ml || 'Book'}...`);
 
         try {
             const tableName = `${currentBookId}_contents`;
-            const query = supabaseClient.from(tableName).select('*').order('ID', { ascending: true });
-            const { data, error } = await promiseWithTimeout(query, 12000);
+            const BATCH_SIZE = 500;
+            let allData = [];
+            let pageIndex = 0;
+            let hasMore = true;
+            let totalCount = 0;
 
-            if (error) throw error;
+            try {
+                const { count } = await supabaseClient.from(tableName).select('*', { count: 'exact', head: true });
+                totalCount = count || 0;
+            } catch(e) {}
 
-            if (data && data.length > 0) {
-                const parsed = data.map(item => ({
-                    id: item.ID,
-                    sequence: item.ID,
-                    part: item['Part Number'] || item.part || 1,
-                    page: item['Page Number'] || item.page || 1,
-                    Arabic: item['Arabic Text'] || item.arabic || '',
-                    Malayalam: item['Malayalam Text'] || item.malayalam || '',
-                    English: item['English Text'] || item.english || ''
-                }));
+            while (hasMore) {
+                const from = pageIndex * BATCH_SIZE;
+                const to = from + BATCH_SIZE - 1;
 
-                await IDB.saveBook(currentBookId, parsed);
-                book.downloaded = true;
-                book.total_pages = parsed.length;
-                currentPages = parsed;
+                const query = supabaseClient.from(tableName).select('*').order('ID', { ascending: true }).range(from, to);
+                const { data, error } = await promiseWithTimeout(query, 15000);
 
-                await refreshBookStatus();
-                renderAllPages();
-                alert(`✅ Downloaded ${parsed.length} pages offline!`);
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    const parsed = data.map(item => ({
+                        id: item.ID,
+                        sequence: item.ID,
+                        part: item['Part Number'] || item.part || 1,
+                        page: item['Page Number'] || item.page || 1,
+                        Arabic: item['Arabic Text'] || item.arabic || '',
+                        Malayalam: item['Malayalam Text'] || item.malayalam || '',
+                        English: item['English Text'] || item.english || ''
+                    }));
+
+                    allData = allData.concat(parsed);
+                    pageIndex++;
+
+                    const progress = totalCount > 0 ? Math.min(100, Math.round((allData.length / totalCount) * 100)) : 95;
+                    showLoading(`📥 Batch ${pageIndex}: Downloaded ${allData.length} / ${totalCount || allData.length} pages (${progress}%)...`);
+
+                    if (data.length < BATCH_SIZE) hasMore = false;
+                } else {
+                    hasMore = false;
+                }
             }
+
+            // Save to IndexedDB
+            await IDB.saveBook(currentBookId, allData);
+            book.downloaded = true;
+            book.total_pages = allData.length;
+            currentPages = allData;
+
+            await refreshBookStatus();
+            renderAllPages();
+            buildDynamicTOC();
+            alert(`✅ Download Complete! Stored ${allData.length} pages offline in IndexedDB.`);
+
         } catch(err) {
             alert('❌ Download failed: ' + err.message);
         } finally {
+            isDownloading = false;
             hideLoading();
         }
     }
 
     // ================================================================
-    // TABLE OF CONTENTS (TOC)
+    // DYNAMIC HEADING PARSER (H1..H4) & BREADCRUMB TOC
     // ================================================================
-    function buildTOC() {
+    function buildDynamicTOC() {
         tocTree = [];
-        currentPages.forEach((page, index) => {
-            const arText = page.Arabic || '';
-            const mlText = (page.Malayalam || '').replace(/<[^>]+>/g, '').trim().substring(0, 35);
+        let currentPart = null;
+        let currentH1 = null;
+        let currentH2 = null;
 
-            if (index === 0 || index % 5 === 0 || arText.includes('<h')) {
-                tocTree.push({
-                    title: `📄 പേജ് ${page.page || index + 1} (ഭാഗം ${page.part || 1})`,
-                    subtitle: mlText + '...',
-                    index: index
-                });
+        currentPages.forEach((page, index) => {
+            const partNum = page.part || 1;
+            const arText = page.Arabic || '';
+            const mlText = page.Malayalam || '';
+
+            // Group by Part
+            if (!currentPart || currentPart.partNumber !== partNum) {
+                currentPart = {
+                    title: `📖 ഭാഗം ${partNum}`,
+                    type: 'part',
+                    partNumber: partNum,
+                    index: index,
+                    children: []
+                };
+                tocTree.push(currentPart);
+                currentH1 = null;
+                currentH2 = null;
+            }
+
+            // Regex search for H1, H2, H3, H4 in Arabic or Malayalam text
+            const h1Match = arText.match(/<h1[^>]*>(.*?)<\/h1>/i) || mlText.match(/<h1[^>]*>(.*?)<\/h1>/i);
+            const h2Match = arText.match(/<h2[^>]*>(.*?)<\/h2>/i) || mlText.match(/<h2[^>]*>(.*?)<\/h2>/i);
+            const h3Match = arText.match(/<h3[^>]*>(.*?)<\/h3>/i) || mlText.match(/<h3[^>]*>(.*?)<\/h3>/i);
+
+            if (h1Match) {
+                const titleStr = h1Match[1].replace(/<[^>]+>/g, '').trim();
+                currentH1 = { title: `📑 ${titleStr}`, type: 'h1', index: index, children: [] };
+                currentPart.children.push(currentH1);
+                currentH2 = null;
+            } else if (h2Match) {
+                const titleStr = h2Match[1].replace(/<[^>]+>/g, '').trim();
+                currentH2 = { title: `📄 ${titleStr}`, type: 'h2', index: index, children: [] };
+                if (currentH1) currentH1.children.push(currentH2);
+                else currentPart.children.push(currentH2);
+            } else if (h3Match) {
+                const titleStr = h3Match[1].replace(/<[^>]+>/g, '').trim();
+                const h3Node = { title: `🔹 ${titleStr}`, type: 'h3', index: index, children: [] };
+                if (currentH2) currentH2.children.push(h3Node);
+                else if (currentH1) currentH1.children.push(h3Node);
+                else currentPart.children.push(h3Node);
+            } else if (index === 0 || index % 5 === 0) {
+                // Fallback page item
+                const pageNode = {
+                    title: `📄 പേജ് ${page.page || index + 1}`,
+                    type: 'page',
+                    index: index,
+                    children: []
+                };
+                if (currentH2) currentH2.children.push(pageNode);
+                else if (currentH1) currentH1.children.push(pageNode);
+                else currentPart.children.push(pageNode);
             }
         });
     }
 
     function openTOC() {
-        buildTOC();
-        const list = document.getElementById('tocList');
-        list.innerHTML = '';
-
-        tocTree.forEach(node => {
-            list.innerHTML += `
-                <div class="universal-row" onclick="jumpToPage(${node.index})" style="margin-bottom:8px;">
-                    <div>
-                        <div class="row-title">${node.title}</div>
-                        <div class="row-subtitle">${node.subtitle}</div>
-                    </div>
-                    <i class="fas fa-chevron-right" style="color:var(--text-muted); font-size:12px;"></i>
-                </div>
-            `;
-        });
+        if (!currentPages || currentPages.length === 0) {
+            alert('No book content loaded.');
+            return;
+        }
+        buildDynamicTOC();
+        tocHistory = [{ title: 'Home', nodes: tocTree }];
+        renderTOCView();
 
         document.getElementById('tocOverlay').classList.add('show');
         document.getElementById('tocModal').classList.add('show');
@@ -1300,22 +1472,125 @@
         document.getElementById('tocModal').classList.remove('show');
     }
 
-    function jumpToPage(index) {
+    function renderTOCView() {
+        const currentLevel = tocHistory[tocHistory.length - 1];
+        
+        // Render Breadcrumbs
+        const bcEl = document.getElementById('tocBreadcrumb');
+        bcEl.innerHTML = tocHistory.map((item, idx) => 
+            `<span class="toc-bc-item" onclick="navigateTOCBreadcrumb(${idx})">${item.title}</span>`
+        ).join(' <i class="fas fa-chevron-right" style="font-size:10px;"></i> ');
+
+        // Render List
+        const listEl = document.getElementById('tocList');
+        listEl.innerHTML = '';
+
+        if (!currentLevel.nodes || currentLevel.nodes.length === 0) {
+            listEl.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-muted);">No sub-items available.</div>';
+            return;
+        }
+
+        currentLevel.nodes.forEach((node, idx) => {
+            const hasChildren = node.children && node.children.length > 0;
+            listEl.innerHTML += `
+                <div class="universal-row" style="margin-bottom:8px;">
+                    <div style="flex-grow:1; cursor:pointer;" onclick="jumpToPageBlock(${node.index})">
+                        <div class="row-title">${node.title}</div>
+                        <div class="row-subtitle">Jump to Page</div>
+                    </div>
+                    ${hasChildren ? `
+                        <button onclick="drillDownTOC(${idx})" style="padding:8px 12px; color:var(--primary-green); font-size:14px; cursor:pointer;">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+        });
+    }
+
+    function drillDownTOC(nodeIdx) {
+        const currentLevel = tocHistory[tocHistory.length - 1];
+        const node = currentLevel.nodes[nodeIdx];
+        if (node && node.children && node.children.length > 0) {
+            tocHistory.push({ title: node.title.substring(0, 18), nodes: node.children });
+            renderTOCView();
+        }
+    }
+
+    function navigateTOCBreadcrumb(historyIdx) {
+        tocHistory = tocHistory.slice(0, historyIdx + 1);
+        renderTOCView();
+    }
+
+    function jumpToPageBlock(idx) {
         closeTOC();
-        const target = document.getElementById(`page-block-${index}`);
+        const target = document.getElementById(`page-block-${idx}`);
         if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
+    function jumpToDirectPage() {
+        const val = parseInt(document.getElementById('jumpPageInput').value);
+        if (isNaN(val) || val <= 0) {
+            alert('Please enter a valid page number.');
+            return;
+        }
+
+        // Find index matching page number
+        let targetIdx = currentPages.findIndex(p => parseInt(p.page) === val);
+        if (targetIdx === -1) {
+            targetIdx = Math.min(val - 1, currentPages.length - 1);
+        }
+
+        jumpToPageBlock(targetIdx);
+    }
+
     // ================================================================
-    // QUOTE SYSTEM
+    // STORAGE ANALYTICS (MB CALCULATOR)
+    // ================================================================
+    async function updateStorageAnalytics() {
+        let totalPages = 0;
+        let downloadedBooksCount = 0;
+        let totalBytes = 0;
+
+        for (const b of allBooks) {
+            const pages = await IDB.getBook(b.id);
+            if (pages && pages.length > 0) {
+                downloadedBooksCount++;
+                totalPages += pages.length;
+                totalBytes += new Blob([JSON.stringify(pages)]).size;
+            }
+        }
+
+        const sizeInMB = (totalBytes / (1024 * 1024)).toFixed(2);
+
+        document.getElementById('statBooks').textContent = downloadedBooksCount;
+        document.getElementById('statPages').textContent = totalPages;
+        document.getElementById('statSize').textContent = `${sizeInMB} MB`;
+    }
+
+    async function clearAllData() {
+        if (!confirm('⚠️ Delete all offline downloaded books and reset IndexedDB?')) return;
+        await IDB.clearAll();
+        await IDB.saveCatalog(FALLBACK_BOOKS);
+        for (const key of Object.keys(FALLBACK_PAGES)) {
+            await IDB.saveBook(key, FALLBACK_PAGES[key]);
+        }
+        allBooks = FALLBACK_BOOKS;
+        await refreshBookStatus();
+        closeSettings();
+        alert('✅ Local IndexedDB storage successfully reset.');
+    }
+
+    // ================================================================
+    // QUOTE SYSTEM & CANVAS CARD
     // ================================================================
     function quotePage(index) {
         const page = currentPages[index];
         if (!page) return;
 
-        document.getElementById('quoteAr').textContent = (page.Arabic || '').substring(0, 300);
-        document.getElementById('quoteMl').textContent = (page.Malayalam || '').substring(0, 300);
-        document.getElementById('quoteEn').textContent = (page.English || '').substring(0, 300);
+        document.getElementById('quoteAr').textContent = (page.Arabic || '').replace(/<[^>]+>/g, '').substring(0, 300);
+        document.getElementById('quoteMl').textContent = (page.Malayalam || '').replace(/<[^>]+>/g, '').substring(0, 300);
+        document.getElementById('quoteEn').textContent = (page.English || '').replace(/<[^>]+>/g, '').substring(0, 300);
         
         const book = allBooks.find(b => String(b.id) === currentBookId);
         document.getElementById('quoteSource').innerHTML = `
@@ -1337,7 +1612,7 @@
         const ml = document.getElementById('quoteMl').textContent;
         const source = document.getElementById('quoteSource').innerText;
         const text = `${ar}\n\n${ml}\n\n— ${source}`;
-        navigator.clipboard.writeText(text).then(() => alert('📋 Copied to Clipboard!'));
+        navigator.clipboard.writeText(text).then(() => alert('📋 Copied Quote text to Clipboard!'));
     }
 
     function shareQuoteAsImage() {
@@ -1375,7 +1650,7 @@
         canvas.toBlob(blob => {
             const file = new File([blob], 'quote.png', { type: 'image/png' });
             if (navigator.share) {
-                navigator.share({ title: 'Quote', files: [file] }).catch(() => {});
+                navigator.share({ title: 'Islamic Quote', files: [file] }).catch(() => {});
             } else {
                 const a = document.createElement('a');
                 a.download = 'quote.png';
@@ -1402,7 +1677,7 @@
     }
 
     // ================================================================
-    // RENDERING CATALOG, CATEGORIES, AUTHORS
+    // HOME VIEW RENDERING & FILTERING
     // ================================================================
     function renderBooks(books) {
         const grid = document.getElementById('bookGrid');
@@ -1498,7 +1773,7 @@
     }
 
     // ================================================================
-    // UI CONTROLS & SETTINGS
+    // UI CONTROLS & APPEARANCE SETTINGS
     // ================================================================
     function openReader() {
         document.getElementById('readerView').classList.add('show');
@@ -1539,7 +1814,7 @@
     function openSettings() {
         document.getElementById('modalOverlay').classList.add('show');
         document.getElementById('settingsModal').classList.add('show');
-        updateStorageInfo();
+        updateStorageAnalytics();
     }
 
     function closeSettings() {
@@ -1549,18 +1824,20 @@
 
     function setTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
-        document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.id === `btn-theme-${theme}`));
         localStorage.setItem('pref_theme', theme);
     }
 
     function toggleTheme() {
         const current = document.documentElement.getAttribute('data-theme') || 'light';
-        const next = current === 'light' ? 'amoled' : (current === 'amoled' ? 'sepia' : 'light');
+        const themes = ['light', 'amoled', 'dark', 'sepia'];
+        const idx = themes.indexOf(current);
+        const next = themes[(idx + 1) % themes.length];
         setTheme(next);
     }
 
     function changeFontSize(delta) {
-        currentFontSize = Math.max(14, Math.min(30, currentFontSize + delta));
+        currentFontSize = Math.max(14, Math.min(32, currentFontSize + delta));
         updateFontSize(currentFontSize);
     }
 
@@ -1568,11 +1845,13 @@
         currentFontSize = parseInt(val);
         document.documentElement.style.setProperty('--font-scale', val + 'px');
         document.getElementById('fontSizeLabel').textContent = val + 'px';
+        document.getElementById('optFontSize').value = val;
         localStorage.setItem('pref_fsize', val);
     }
 
     function updateLineHeight(val) {
         document.documentElement.style.setProperty('--reader-line-height', val);
+        document.getElementById('optLineHeight').value = val;
         localStorage.setItem('pref_lheight', val);
     }
 
@@ -1590,11 +1869,18 @@
         let font = '';
         if (lang === 'ml') {
             font = fontName === 'Noto Serif' ? "'Noto Serif Malayalam', serif" :
-                   fontName === 'Noto Sans' ? "'Noto Sans Malayalam', sans-serif" : "'Manjari', sans-serif";
+                   fontName === 'Noto Sans' ? "'Noto Sans Malayalam', sans-serif" :
+                   fontName === 'Manjari' ? "'Manjari', sans-serif" :
+                   fontName === 'Chilanka' ? "'Chilanka', cursive" : "'Gayathri', sans-serif";
             document.documentElement.style.setProperty('--reader-font-ml', font);
         } else if (lang === 'ar') {
-            font = fontName === 'Amiri' ? "'Amiri', serif" : "'Noto Naskh Arabic', serif";
+            font = fontName === 'Amiri' ? "'Amiri', serif" :
+                   fontName === 'Noto Naskh' ? "'Noto Naskh Arabic', serif" :
+                   fontName === 'Scheherazade' ? "'Scheherazade New', serif" : "'Lateef', serif";
             document.documentElement.style.setProperty('--reader-font-ar', font);
+        } else if (lang === 'en') {
+            font = fontName === 'Source Serif' ? "'Source Serif 4', serif" : "'Noto Sans', sans-serif";
+            document.documentElement.style.setProperty('--reader-font-en', font);
         }
         localStorage.setItem(`pref_font_${lang}`, font);
     }
@@ -1613,33 +1899,6 @@
         });
     }
 
-    async function updateStorageInfo() {
-        let pagesCount = 0;
-        let booksCount = 0;
-        for (const b of allBooks) {
-            const p = await IDB.getBook(b.id);
-            if (p && p.length > 0) {
-                booksCount++;
-                pagesCount += p.length;
-            }
-        }
-        document.getElementById('storageBooks').textContent = booksCount;
-        document.getElementById('storagePages').textContent = pagesCount;
-    }
-
-    async function clearAllData() {
-        if (!confirm('⚠️ Delete all offline downloaded data?')) return;
-        await IDB.clearAll();
-        await IDB.saveCatalog(FALLBACK_BOOKS);
-        for (const key of Object.keys(FALLBACK_PAGES)) {
-            await IDB.saveBook(key, FALLBACK_PAGES[key]);
-        }
-        allBooks = FALLBACK_BOOKS;
-        await refreshBookStatus();
-        closeSettings();
-        alert('✅ Database reset to default offline state.');
-    }
-
     function showLoading(text) {
         document.getElementById('loadingText').textContent = text || '📖 Loading...';
         document.getElementById('loadingOverlay').classList.add('show');
@@ -1649,10 +1908,29 @@
         document.getElementById('loadingOverlay').classList.remove('show');
     }
 
+    // ================================================================
+    // LOAD SAVED USER PREFERENCES
+    // ================================================================
     document.addEventListener('DOMContentLoaded', () => {
-        setTheme(localStorage.getItem('pref_theme') || 'light');
-        updateFontSize(localStorage.getItem('pref_fsize') || '18');
-        updateLineHeight(localStorage.getItem('pref_lheight') || '1.85');
+        const savedTheme = localStorage.getItem('pref_theme') || 'light';
+        setTheme(savedTheme);
+
+        const savedFSize = localStorage.getItem('pref_fsize') || '18';
+        updateFontSize(savedFSize);
+
+        const savedLHeight = localStorage.getItem('pref_lheight') || '1.85';
+        updateLineHeight(savedLHeight);
+
+        const savedAlign = localStorage.getItem('pref_align') || 'justify';
+        document.documentElement.style.setProperty('--reader-align', savedAlign);
+
+        ['ml', 'ar', 'en'].forEach(lang => {
+            const savedFont = localStorage.getItem(`pref_font_${lang}`);
+            if (savedFont) {
+                document.documentElement.style.setProperty(`--reader-font-${lang}`, savedFont);
+            }
+        });
+
         initApp();
     });
 </script>
